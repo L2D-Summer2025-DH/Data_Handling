@@ -9,7 +9,7 @@ output:
 
 [**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/uc?id=1yI-WAGUGGikMB0WEC0F4bq39NWU_ftlF&export=download)
 
-[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=10T_wlrFbCu1ijkIc3QtrPUpi4k2oAxBA&export=download)
+[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/uc?id=1npyN0qrEUHNjNQxDGAOcYcpvr2aeDYZB&export=download)
 
 [<span style="color: rgb(255, 0, 0);">**Mandatory Lesson Feedback Survey**</span>](https://docs.google.com/forms/d/e/1FAIpQLSdr0capF7jloJhPH3Pki1B3LZoKOG16poOpuVJ7SL2LkwLHQA/viewform?pli=1)
 
