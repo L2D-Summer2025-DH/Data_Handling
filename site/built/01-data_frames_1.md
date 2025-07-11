@@ -7,7 +7,7 @@ output:
     keep_md: true
 ---
 
-[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=1BwmP3qeemi5YFkTGMw-r8-z6L15_gE2B&export=download)
+[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/uc?id=1yI-WAGUGGikMB0WEC0F4bq39NWU_ftlF&export=download)
 
 [**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=10T_wlrFbCu1ijkIc3QtrPUpi4k2oAxBA&export=download)
 
@@ -454,11 +454,51 @@ df['calcium'][[1, 3, 7]]
 Name: calcium, dtype: float64
 ```
 
+:::::::::::::::::::::::::::::::::: challenge
+
+## Practise Exercise 2
+
+**Select data from DataFrame**
+
+Display the calcium and sodium concentrations of all patients - except the first.
+
+::::::::::::::::: solution
+
+
+``` python
+df[['calcium', 'sodium']][1:]
+```
+
+``` output
+     calcium      sodium
+1   3.669026  125.663330
+2   2.789910  105.821810
+3   2.939900   98.172772
+4   5.426060   97.931489
+5   0.715811  120.858330
+6   5.652390  112.871500
+7   3.571320  112.647360
+8   4.300067  132.031720
+9   1.369419  118.499010
+10  2.550962  117.373730
+11  2.894129  134.052390
+12  3.664987  105.346410
+13  1.362779  123.359490
+14  3.718798  125.021060
+15  1.865868  112.075420
+16  3.272809  117.588040
+17  3.917591  101.009870
+```
+
+:::::::::::::::::
+
+::::::::::::::::::::::::::::::::::
+
 ## Indexing and slicing using `.loc`
 
 <p style='text-align: justify;'>
 
-Another common method for indexing and slicing a DataFrame is to use the **label-based indexer**, `.loc`. Unlike `.iloc` (a now-deprecated method found in Pandas versions earlier than 2.2.0), which uses numerical index positions, `.loc` uses the explicit labels of rows and columns.
+Another common way to index and slice a DataFrame is to use the **label-based indexer**, `.loc`, which is referred to as a property; this means that it is accessed without parentheses and refers to a built-in attribute of the DataFrame that allows label-based indexing and slicing. Unlike `.iloc` (a now-deprecated method found in Pandas versions earlier than 2.2.0), which uses numerical index positions, `.loc` uses the explicit labels of rows and columns.
 
 This is now the preferred approach in Pandas, especially when working with DataFrames that have named indices or meaningful column names. While `.iloc` remains supported, it’s important to note that `.loc` is more readable, aligning well with good data science practice; particularly when working with real-world datasets.
 
@@ -554,46 +594,6 @@ df.loc[0:16:2, :]
 ```
 
 In this line, the step size after the second colon behaves just like Python slicing; but again, the final index value is included when using `.loc`.
-
-:::::::::::::::::::::::::::::::::: challenge
-
-## Practise Exercise 2
-
-**Select data from DataFrame**
-
-Display the calcium and sodium concentrations of all patients - except the first.
-
-::::::::::::::::: solution
-
-
-``` python
-df[['calcium', 'sodium']][1:]
-```
-
-``` output
-     calcium      sodium
-1   3.669026  125.663330
-2   2.789910  105.821810
-3   2.939900   98.172772
-4   5.426060   97.931489
-5   0.715811  120.858330
-6   5.652390  112.871500
-7   3.571320  112.647360
-8   4.300067  132.031720
-9   1.369419  118.499010
-10  2.550962  117.373730
-11  2.894129  134.052390
-12  3.664987  105.346410
-13  1.362779  123.359490
-14  3.718798  125.021060
-15  1.865868  112.075420
-16  3.272809  117.588040
-17  3.917591  101.009870
-```
-
-:::::::::::::::::
-
-::::::::::::::::::::::::::::::::::
 
 Mixing the different methods of accessing specific data in a DataFrame can be confusing, and requires practice and diligence.
 
@@ -892,8 +892,6 @@ df[sodium_filtered]
 :::::::::::::::::::::::::::::::::: challenge
 
 ## Practise Exercise 5 
-
-**Using a template**
 
 Write a short block of code to create a `low_sodium` column. Use this to filter the dataset. 
 
@@ -1199,7 +1197,7 @@ Rows: 442 Columns: 10
 
 There are 442 rows organised in 10 columns.
 
-In order to obtain an overview, let us extract the mean of each column using the <kbd>describe</kbd> and plot all means as a bar chart. The Matplotlib function to plot a bar chart is called <kbd>bar</kbd>:
+In order to obtain an overview, let us extract the mean of each column using the <kbd>describe</kbd> and plot all means as a bar chart. The Matplotlib function to plot a bar chart is called <kbd>bar()</kbd>:
 
 
 ``` python
@@ -1216,42 +1214,42 @@ The means are:  [-2.511816797794472e-19, 1.2307902309192911e-17, -2.245564217228
 ```
 
 
+
+
 ``` python
 fig, ax = subplots()
 
-bins = range(10)
+# Note, 
 
-ax.bar(bins, conc_means);
+categories = df_diabetes.columns
+
+ax.bar(categories, conc_means);
 
 show()
 ```
 
 <img src="fig/01-data_frames_1-rendered-unnamed-chunk-49-21.png" width="672" style="display: block; margin: auto;" />
 
-<p style='text-align: justify;'>
-Note how the bars in this plot go up and down. The vertical axis, however, has values ranging from -10^(-16)^ to +10^(-16)^. This means that, for all practical purposes, all means are zero which is not a coincidence. The original values have been normalised to mean zero for the purpose of applying a machine learning algorithm to them.
-</p>
-
-In this example, we can clearly observe the importance of checking the data before working with them.
-
 ## Exercises
 :::::::::::::::::::::::::::::::::::::::: challenge
 
 #### End of chapter Exercises
 
-Download the cervical cancer dataset provided, import it using `read_csv`.
+Download the cervical cancer dataset provided (in your GitHub repository, or on the "Summary and Setup" page linked at the top of the Episodes bar), and import it using `read_csv`.
 
-1. How many rows and columns are there?
+1. Import Pandas and read the dataset. Display the first 10 rows using `.head()`.
 
-2. How many columns contain floating point numbers (type float64)?
+2. How many rows and columns are there?
 
-3. How many of the subjects are smokers?
+3. How many columns contain floating point numbers?
 
-4. Calculate the percentage of smokers
+4. How many of the subjects are smokers?
 
-5. Plot the age distribution (with, for instance, 50 bins)
+5. Calculate the percentage of smokers. Round the answer to 1 decimal place.
 
-6. Get the mean and standard deviation of age of first sexual intercourse
+6. Plot a histogram of the age distribution (with 50 bins) using Matplotlib.
+
+7. Get the mean and standard deviation of Number of sexual partners. Round the answer to 1 decimal place.
 
 ::::::::::::::::::::: solution
 
@@ -1264,11 +1262,12 @@ Download the cervical cancer dataset provided, import it using `read_csv`.
 
 ::::::::::::::::::::::::::::::::::::: keypoints
 
-- <kbd>Pandas</kbd> package contains useful functions to work with DataFrames.
-- The <kbd>iloc</kbd> property is used to index and slice a DataFrame.
-- <kbd>describe</kbd> function is used to obtain a statistical summary of basic data features.
-- The simplest method for data visualisation, is to use Pandas' in-built functionality.
-- `Matplotlib` is a comprehensive library for creating static, animated, and interactive visualizations, in Python.
+- The `Pandas` package provides powerful tools for working with tabular data in DataFrames.
+- The `.loc` property is used to index and slice a DataFrame using label-based indexing.
+- The `describe()` function returns a statistical summary of a DataFrame’s numeric columns.
+- A simple way to visualise data is to use Pandas’ built-in plotting functionality.
+- `Matplotlib` is a comprehensive library for creating static, animated and interactive visualisations in Python.
+
 ::::::::::::::::::::::::::::::::::::::::::::::::
 
 
