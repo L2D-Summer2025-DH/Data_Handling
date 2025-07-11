@@ -211,7 +211,10 @@ The output shows in the first column an index, integers from 0 to 17; and the ca
 </p>
 
 <p style='text-align: justify;'>
-In a DataFrame, the first column is referred to as _Indices_, the first row is referred to as _Labels_. Note that the row with the labels is excluded from the row count. Similarly, the row with the indices is excluded from the column count.
+In a Pandas DataFrame, the labels shown on the left are known as the <strong>index</strong>, and they identify the rows. By default, this index is made up of sequential integers starting from 0, although you can customise it to use any labels you like (e.g. strings, dates, or categories). 
+
+Across the top, the first row contains the <strong>column names</strong>, which serve as headers for each column. Both the index and the column names form part of the DataFrame’s <em>structure</em>. They are considered as <strong>metadata</strong>, and are not included in the count of rows or columns when measuring the shape or data dimensions of the DataFrame, itself.
+
 </p>
 
 For large datasets, the function `head` is a convenient way to get a feel of the dataset.
@@ -335,7 +338,7 @@ In this case, both columns contain floating point (decimal) numbers.
 
 :::::::::::::::::::::::: challenge
 
-## Practice Exercise 1
+## Practise Exercise 1
 
 **Read data into a DataFrame**
 
@@ -451,15 +454,19 @@ df['calcium'][[1, 3, 7]]
 Name: calcium, dtype: float64
 ```
 
-<p style='text-align: justify;'>
-Another method for indexing and slicing a DataFrame is to use the 'index location' or `iloc` property. Note that properties in Python differ from methods. Syntactically, they use the same dot notation we are accustomed to with methods, but they differ in their use of square brackets, rather than the round parentheses that methods operate with. A property also refers directly to a specific **attribute** of an object. 
+## Indexing and slicing using `.loc`
 
-In this example `iloc` refers first to the rows of data, and then to columns - by index; all contained within a single pair of brackets. For example, to obtain all the rows of the first column (index `0`), you use:
-</p>
+<p style='text-align: justify;'>
+
+Another common method for indexing and slicing a DataFrame is to use the **label-based indexer**, `.loc`. Unlike `.iloc` (a now-deprecated method found in Pandas versions earlier than 2.2.0), which uses numerical index positions, `.loc` uses the explicit labels of rows and columns.
+
+This is now the preferred approach in Pandas, especially when working with DataFrames that have named indices or meaningful column names. While `.iloc` remains supported, it’s important to note that `.loc` is more readable, aligning well with good data science practice; particularly when working with real-world datasets.
+
+In the code examples given below, `.loc` still follows the format of [rows, columns], but uses labels rather than integers. For instance, in order to obtain all the rows from the column called `"calcium"`, we would use:
 
 
 ``` python
-df.iloc[:, 0]
+df.loc[:, "calcium"]
 ```
 
 ``` output
@@ -484,11 +491,11 @@ df.iloc[:, 0]
 Name: calcium, dtype: float64
 ```
 
-To display only the first three calcium concentrations, slicing is used: note that the upper boundary is excluded):
+To display only the first three calcium concentrations, assuming the DataFrame index is a simple range starting at 0, you could use:
 
 
 ``` python
-df.iloc[0:3, 0]
+df.loc[0:2, "calcium"]
 ```
 
 ``` output
@@ -498,11 +505,11 @@ df.iloc[0:3, 0]
 Name: calcium, dtype: float64
 ```
 
-To access non-consecutive values, we can use a pair of square brackets within the outer pair of square brackets:
+**Note:** Unlike `.iloc`, the upper boundary is included when using `.loc`. In order to access non-consecutive rows from a column using their labels:
 
 
 ``` python
-df.iloc[[2, 4, 7], 0]
+df.loc[[2, 4, 7], "calcium"]
 ```
 
 ``` output
@@ -512,11 +519,11 @@ df.iloc[[2, 4, 7], 0]
 Name: calcium, dtype: float64
 ```
 
-Similarly, we can access values from multiple columns:
+We can also retrieve multiple columns by passing `.loc` a list of column names as an argument:
 
 
 ``` python
-df.iloc[[2, 4, 7], :]
+df.loc[[2, 4, 7], ["calcium", "sodium"]]
 ```
 
 ``` output
@@ -526,11 +533,11 @@ df.iloc[[2, 4, 7], :]
 7  3.57132  112.647360
 ```
 
-To pick only the even rows from the two columns, note the following colon notation:
+To select even-numbered rows (up to index 16) and all columns:
 
 
 ``` python
-df.iloc[:18:2, :]
+df.loc[0:16:2, :]
 ```
 
 ``` output
@@ -546,11 +553,11 @@ df.iloc[:18:2, :]
 16  3.272809  117.588040
 ```
 
-The number after the second colon indicates the _stepsize_.
+In this line, the step size after the second colon behaves just like Python slicing; but again, the final index value is included when using `.loc`.
 
 :::::::::::::::::::::::::::::::::: challenge
 
-## Practice Exercise 2
+## Practise Exercise 2
 
 **Select data from DataFrame**
 
@@ -609,7 +616,7 @@ dtype: bool
 This shows that there are no missing entries in our DataFrame.
 
 :::::::::::::::::::::::::::::::::: challenge
-## Practice Exercise 3
+## Practise Exercise 3
 
 **Find NaN in DataFrame**
 
@@ -644,7 +651,7 @@ Name: Self_Employed, dtype: bool
 ::::::::::::::::::::::::::::::::::
 
 
-## Basic data features:
+## Basic data features
 
 ### **Summary Statistics**
 
@@ -739,7 +746,7 @@ dtype: float64
 ```
 
 :::::::::::::::::::::::::::::::::: challenge
-## Practice Exercise 4
+## Practise Exercise 4
 
 <p style='text-align: justify;'>
 Use your own .csv dataset to practice. (If you don't have a dataset at hand, any excel table can be exported as .csv.) Firstly, read it into a DataFrame, and proceed by checking its header, accessing individual values or sets of values etc. Create a statistical summary using `describe`, and check for missing values using `.isnull`.
@@ -751,191 +758,164 @@ Use your own .csv dataset to practice. (If you don't have a dataset at hand, any
 
 ::::::::::::::::::::::::::::::::::
 
-### **Iterating through the columns**
+### **Creating new columns**
 
-Now we know how to access all data in a DataFrame and how to get a statistical summary statistics over each column.
+Pandas DataFrames are mutable objects that can have new columns of data added to them at any time. The only pre-requisite is that the newly added data must be the *same length* as the DataFrame, so that it matches.
 
-Here is code to iterate through the columns and access the first two concentrations:
+To create a new column we simply assign a new column name in between the square brackets `[]`: much as though we were accessing a pre-existing column. This way, we have assigned a new data array to it.
 
+::::::::::::::::::::::::::::::::::::: callout
+## IMPORTANT
 
+Try to not include spaces in the lables of your column headings. Spaces can lead to reading errors later down the line and are not always visible.
 
-``` python
-for col in df:
-
-    print(df[col][0:2])
-```
-
-``` output
-0    3.455582
-1    3.669026
-Name: calcium, dtype: float64
-0    112.69098
-1    125.66333
-Name: sodium, dtype: float64
-```
-
-As a slightly more complex example, we access the median ('50%') of each column in the description, and add it to a list:
-
+::::::::::::::::::::::::::::::::::::: 
 
 
 ``` python
-conc_medians = list()
+# We can guarantee a new column is the same length by using len(df):
+df['new_column'] = list(range(len(df)))
 
-for col in df:
-
-    conc_medians.append(df[col].describe()['50%'])
-
-print('The columns are: ', list(df.columns))
-print('The medians are: ', conc_medians)
+df.head()
 ```
 
 ``` output
-The columns are:  ['calcium', 'sodium']
-The medians are:  [np.float64(3.3641954), np.float64(115.122615)]
+    calcium      sodium  new_column
+0  3.455582  112.690980           0
+1  3.669026  125.663330           1
+2  2.789910  105.821810           2
+3  2.939900   98.172772           3
+4  5.426060   97.931489           4
 ```
 
-<p style='text-align: justify;'>
-This approach is useful for DataFrames with a larger number of columns. For instance, it is possible to follow this by creating a boxplot or histogram for the means, medians etc. of the DataFrame, thus giving a comprehensive overview of all (comparable) columns.
-</p>
+However, we will seldom wish to add new data to a DataFrame. More often, we'll want to add a new data column based off of, for instance, a combination of data columns, or a satisfied (or unsatisfied) logical condition. All of the mathmatical operators `+, -, *, /, **, …` or logical operators `<, >, ==, …` will work row-wise when applied to one or more columns.
 
-### **Selecting a subset based on a template**
+
+``` python
+# Mathematical operators can be applied to singular columns:
+df['calcium_squared'] = df['calcium'] ** 2
+
+df.head()
+```
+
+``` output
+    calcium      sodium  new_column  calcium_squared
+0  3.455582  112.690980           0        11.941045
+1  3.669026  125.663330           1        13.461754
+2  2.789910  105.821810           2         7.783600
+3  2.939900   98.172772           3         8.643012
+4  5.426060   97.931489           4        29.442127
+```
+
+
+``` python
+# They can also be applied between columns:
+df['sodium_minus_calcium'] = df['sodium'] - df['calcium']
+
+df.head()
+```
+
+``` output
+    calcium      sodium  new_column  calcium_squared  sodium_minus_calcium
+0  3.455582  112.690980           0        11.941045            109.235398
+1  3.669026  125.663330           1        13.461754            121.994304
+2  2.789910  105.821810           2         7.783600            103.031900
+3  2.939900   98.172772           3         8.643012             95.232872
+4  5.426060   97.931489           4        29.442127             92.505429
+```
+
+
+``` python
+# Logical operators can also be used to create a True/False column based on a condition:
+df['high_sodium'] = df['sodium'] > 130
+
+df.head()
+```
+
+``` output
+    calcium      sodium  ...  sodium_minus_calcium  high_sodium
+0  3.455582  112.690980  ...            109.235398        False
+1  3.669026  125.663330  ...            121.994304        False
+2  2.789910  105.821810  ...            103.031900        False
+3  2.939900   98.172772  ...             95.232872        False
+4  5.426060   97.931489  ...             92.505429        False
+
+[5 rows x 6 columns]
+```
+
+To remove a column, you can use the `.drop()` method to remove or drop the new columns of data. (Note: we are only doing this for aesthetic reasons, to keep subsequent cells in this tutorial less congested). To find out more information about .drop() and other methods, please read through [Pandas' official documentation.](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.drop.html)
+
+
+``` python
+# Use the .drop() method to remove columns, specified inside a list:
+df.drop(columns = ["new_column", "calcium_squared", "sodium_minus_calcium" ], inplace = True)
+
+# Note the optional argument 'inplace = True' ensures that the old DataFrame is overwritten with
+# the specified changes being made. If the value is set to 'False' a copy is returned, instead.
+
+df.head()
+```
+
+``` output
+    calcium      sodium  high_sodium
+0  3.455582  112.690980        False
+1  3.669026  125.663330        False
+2  2.789910  105.821810        False
+3  2.939900   98.172772        False
+4  5.426060   97.931489        False
+```
+
+### **Filtering data in a DataFrame**
 
 <p style='text-align: justify;'>
 Often, an analysis of a dataset may be required only on part of the data. This can often be formulated by using a logical condition which specifies the required subset.
 </p>
 
 <p style='text-align: justify;'>
-For this we will assume that some of the data are labelled '0' and some are labelled '1'. Let us therefore see how to add a new column to our Everley's DataFrame, which contains the labels (which are, in this example, arbitrary).
-</p>
-
-<p style='text-align: justify;'>
-Firstly, we can randomly create as many labels as we have rows in the DataFrame. We can use the <kbd>randint</kbd> function, which can be imported from the <kbd>numpy.random</kbd> module of the NumPy library. In its simplest form, the <kbd>randint</kbd> function accepts two arguments. Firstly, the upper bound of the integer needed, which defaults to zero. As Python is exclusive of the upper bound, providing '2' will thus yield either '0' or '1' only.
+If we assign the result of the conditional statement (such as the conditional we wrote to define the `high_sodium` column, earlier in the lesson) then this variable can act as a template with which we can filter the data. If we call the DataFrame with that variable, we will only get the rows where the condition was found to be true:
 </p>
 
 
 ``` python
-from numpy.random import randint
+sodium_filtered = df['high_sodium']
 
-no_rows = len(df)
-
-randomLabel = randint(2, size=no_rows)
-
-print('Number of rows:  ', no_rows)
-print('Number of Labels:', len(randomLabel))
-print('Labels:          ', randomLabel)
+df[sodium_filtered]
 ```
 
 ``` output
-Number of rows:   18
-Number of Labels: 18
-Labels:           [0 0 1 0 1 0 0 1 0 0 0 1 1 1 1 1 0 0]
+     calcium     sodium  high_sodium
+8   4.300067  132.03172         True
+11  2.894129  134.05239         True
 ```
 
-Note how we obtain the number of rows (18) using <kbd>len</kbd> function and do not explicitly state it in the code.
-
-<p style='text-align: justify;'>
-Next, we must create a new data column in our `df` DataFrame which contains the labels. In order to create a new column, you may simply refer to a column name that does not yet exist, and subsequently assign values to it. Let us call it 'gender', assuming that '0' represents male and '1' represents female.
-</p>
-
-As gender specification can include more than two labels, try to create a column with more than two randomly assigned labels e.g. (0, 1, 2).
-
-
-``` python
-df['gender'] = randomLabel
-
-df.head()
-```
-
-``` output
-    calcium      sodium  gender
-0  3.455582  112.690980       0
-1  3.669026  125.663330       0
-2  2.789910  105.821810       1
-3  2.939900   98.172772       0
-4  5.426060   97.931489       1
-```
-
-<p style='text-align: justify;'>
-Now we can use the information contained in 'gender' to filter the data by gender. To achieve this, we use a conditional statement. Let us check which of the rows are labelled as '1':
-</p>
-
-
-``` python
-df['gender'] == 1
-```
-
-``` output
-0     False
-1     False
-2      True
-3     False
-4      True
-5     False
-6     False
-7      True
-8     False
-9     False
-10    False
-11     True
-12     True
-13     True
-14     True
-15     True
-16    False
-17    False
-Name: gender, dtype: bool
-```
-
-<p style='text-align: justify;'>
-If we assign the result of the conditional statement (a boolean: True or False) to a variable, then this variable can act as a template to filter the data. If we call the DataFrame with that variable, we will only get the rows where the condition was found to be True:
-</p>
-
-
-``` python
-df_female = df['gender'] == 1
-
-df[df_female]
-```
-
-``` output
-     calcium      sodium  gender
-2   2.789910  105.821810       1
-4   5.426060   97.931489       1
-7   3.571320  112.647360       1
-11  2.894129  134.052390       1
-12  3.664987  105.346410       1
-13  1.362779  123.359490       1
-14  3.718798  125.021060       1
-15  1.865868  112.075420       1
-```
-
-Using the boolean, we only pick the rows that are labelled '1' and thus get a subset of the data according to the label.
 
 :::::::::::::::::::::::::::::::::: challenge
 
-## Practice Exercise 5 
+## Practise Exercise 5 
 
 **Using a template**
 
-Modify the code to calculate the number of samples labelled 0 and check the number of rows of that subset.
+Write a short block of code to create a `low_sodium` column. Use this to filter the dataset. 
 
 ::::::::::::::::: solution
 
 
 ``` python
-from numpy.random import randint
-no_rows = len(df)
-randomLabel = randint(2, size=no_rows)
-df['gender'] = randomLabel
-df_male = df['gender'] == 0
-no_males = len(df[df_male])
-print(no_males, 'samples are labelled "male".')
+df['low_sodium'] = df['sodium'] < 100
+
+low_sodium_filtered = df['low_sodium']
+
+df[low_sodium_filtered]
 ```
 
 ``` output
-9 samples are labelled "male".
+   calcium     sodium  high_sodium  low_sodium
+3  2.93990  98.172772        False        True
+4  5.42606  97.931489        False        True
 ```
+
 :::::::::::::::::
+
 ::::::::::::::::::::::::::::::::::
 
 ## Visualisation of data
@@ -1051,7 +1031,7 @@ show()
 
 
 :::::::::::::::::::::::::::::: challenge
-## Practice Exercise 6 
+## Practise Exercise 6 
 
 **Boxplot from Loan data**
 
@@ -1138,7 +1118,7 @@ show()
 <img src="fig/01-data_frames_1-rendered-unnamed-chunk-44-17.png" width="672" style="display: block; margin: auto;" />
 
 ::::::::::::::::::::::::::::::: challenge
-## Practice Exercise 7: 
+## Practise Exercise 7: 
 
 **Create the histogram of a column**
 
@@ -1223,18 +1203,16 @@ In order to obtain an overview, let us extract the mean of each column using the
 
 
 ``` python
-conc_means = list()
-
-for col in df_diabetes:
-    conc_means.append(df_diabetes[col].describe()['mean'])
+conc_means = df_diabetes.describe().loc['mean'].tolist()
 
 print('The columns are: ', list(df_diabetes.columns))
-print('The medians are: ', conc_means)
+
+print('The means are: ', conc_means)
 ```
 
 ``` output
 The columns are:  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-The medians are:  [np.float64(-2.511816797794472e-19), np.float64(1.2307902309192911e-17), np.float64(-2.2455642172282577e-16), np.float64(-4.7975700837874414e-17), np.float64(-1.3814992387869595e-17), np.float64(3.918434204559376e-17), np.float64(-5.7771786349272854e-18), np.float64(-9.042540472060099e-18), np.float64(9.293722151839546e-17), np.float64(1.1303175590075123e-17)]
+The means are:  [-2.511816797794472e-19, 1.2307902309192911e-17, -2.2455642172282577e-16, -4.7975700837874414e-17, -1.3814992387869595e-17, 3.918434204559376e-17, -5.7771786349272854e-18, -9.042540472060099e-18, 9.293722151839546e-17, 1.1303175590075123e-17]
 ```
 
 
