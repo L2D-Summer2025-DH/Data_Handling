@@ -20,7 +20,8 @@ library(reticulate)
 cat("Initial Python environment: ", Sys.getenv("RETICULATE_PYTHON"), "\n")
 
 # Unset any previously set Python environments to avoid conflicts
-Sys.unsetenv("RETICULATE_PYTHON")
+# Set the Python environment to use the virtual environment
+Sys.setenv(RETICULATE_PYTHON = "/Users/Adam/.virtualenvs/r-reticulate/bin/python3")
 
 # Check if Pandoc is available and validate the path
 if (!file.exists("/opt/homebrew/bin/pandoc")) {

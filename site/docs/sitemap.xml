@@ -7,10 +7,7 @@
     <loc>https://carpentries.github.io/workbench-template-rmd/01-data_frames_1.nb.html</loc>
   </url>
   <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/02-data_frames_2.nb.html</loc>
-  </url>
-  <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/04-time_series.nb.html</loc>
+    <loc>https://carpentries.github.io/workbench-template-rmd/02-data_frames_2.html</loc>
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/404.html</loc>
@@ -32,6 +29,9 @@
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/instructor/01-data_frames_1.html</loc>
+  </url>
+  <url>
+    <loc>https://carpentries.github.io/workbench-template-rmd/instructor/02-data_frames_2.html</loc>
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/instructor/404.html</loc>

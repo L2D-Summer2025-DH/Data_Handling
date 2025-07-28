@@ -14,7 +14,7 @@ exercises: 60
 library(reticulate)
 
 # Unset any previously set Python environments to avoid conflicts
-Sys.unsetenv("RETICULATE_PYTHON")
+Sys.setenv(RETICULATE_PYTHON = "/Users/Adam/.virtualenvs/r-reticulate/bin/python3")
 
 # Check if Pandoc is available
 if (!file.exists("/opt/homebrew/bin/pandoc")) {
@@ -834,17 +834,28 @@ print('Average Correlation Strength: ', round(data_corr_matrix_average, 3))
 
 Import the breast cancer dataset using <kbd>read_csv</kbd>. Based on the code in this lesson, try to do the following:
 
-1. Get the summary (univariate) statistics of columns 2-10 (accessing indices 1:10) using <kbd>describe</kbd>
+1. Get the summary (univariate) statistics of columns 2-10 using `describe`.
+- Use .loc not .iloc
+- To do so, use a slice of the column headers attribute / list, and round to 2 decimal places
 
-2. Plot the means of each column as a bar chart with standard deviations displayed as error bars. Why are some bars invisible?
+2. Plot the means of each column as a bar chart with standard deviations displayed as error bars. 
+- Try to add the standard deviation as an error bar, using the keyword argument `yerr`.
+- Get the standard deviation from the `describe` DataFrame
+- To rotate the x-axis labels (for better visibility) use: `ax.tick_params(axis='x', labelrotation=-45)`
 
-3. Extract the values as a NumPy array using the <kbd>to_numpy</kbd> function. The shape of the array should be (569, 31).
+3. Extract the values of the original DataFrame as a NumPy array.
+- Use the `to_numpy` method
+- Print the shape of the array
 
-4. Calculate the correlation matrix using <kbd>corrcoef</kbd> from NumPy and plot it as a heatmap. The shape of the matrix should be (31, 31). Use `fill_diagonal` to set the diagonal elements to 0.
+4. Calculate the correlation matrix using `corrcoef` from NumPy, and plot it as a heatmap.
+- The shape of the matrix should be (31, 31)
+- Use `fill_diagonal` to set the diagonal elements to 0
+- Include a colour bar in your plot with appropriate settings
 
-5. Calculate the average column correlation and plot it as a bar chart.
+5. Calculate the average column correlation (absolute values) and plot it as a bar chart. Give the plot an appropriate title.
 
 6. Calculate the average correlation strength of the dataset.
+- Round to 3 decimal places
 
 In case of doubt, try to get help from the respective documentation available for Pandas DataFrames, NumPy and Matplotlib.
 
