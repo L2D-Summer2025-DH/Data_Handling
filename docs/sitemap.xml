@@ -16,6 +16,9 @@
     <loc>https://carpentries.github.io/workbench-template-rmd/03-image_handling.html</loc>
   </url>
   <url>
+    <loc>https://carpentries.github.io/workbench-template-rmd/03-image_handling.nb.html</loc>
+  </url>
+  <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/04-time_series.nb.html</loc>
   </url>
   <url>
@@ -26,12 +29,6 @@
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/aio.html</loc>
-  </url>
-  <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/images.html</loc>
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/index.html</loc>
@@ -55,28 +52,10 @@
     <loc>https://carpentries.github.io/workbench-template-rmd/instructor/LICENSE.html</loc>
   </url>
   <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/instructor/aio.html</loc>
-  </url>
-  <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/instructor/images.html</loc>
-  </url>
-  <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/instructor/index.html</loc>
   </url>
   <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/instructor/instructor-notes.html</loc>
-  </url>
-  <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/instructor/key-points.html</loc>
-  </url>
-  <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/instructor/profiles.html</loc>
-  </url>
-  <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/instructor-notes.html</loc>
-  </url>
-  <url>
-    <loc>https://carpentries.github.io/workbench-template-rmd/key-points.html</loc>
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/profiles.html</loc>
