@@ -612,35 +612,19 @@ in your command line or terminal.
 import nibabel as nib
 ```
 
-``` output
-ModuleNotFoundError: No module named 'nibabel'
-```
-
 The package is now available for use. To shorten how we call on the nibabel package in our code, we can use the above import statement, using the alias nib to refer to `nibabel`. Thus we can call on any function in `nibabel`, by using `nib` followed by a dot and the function name, as follows:
 
 
 ``` python
 img_3d = nib.load('fig/brain.nii')
-```
 
-``` output
-NameError: name 'nib' is not defined
-```
-
-``` python
 img_data = img_3d.get_fdata()
-```
 
-``` output
-NameError: name 'img_3d' is not defined
-```
-
-``` python
 print(type(img_data))
 ```
 
 ``` output
-NameError: name 'img_data' is not defined
+<class 'numpy.memmap'>
 ```
 
 ``` python
@@ -648,7 +632,7 @@ print(img_data.shape)
 ```
 
 ``` output
-NameError: name 'img_data' is not defined
+(256, 256, 124)
 ```
 
 <p style='text-align: justify;'>

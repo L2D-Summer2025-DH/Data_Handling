@@ -41,13 +41,35 @@ tryCatch({
   stop("Failed to validate Python environment.")
 })
 
+# Check and install nibabel if needed
+tryCatch({
+  py_run_string("import nibabel")
+  cat("nibabel is already available.\n")
+}, error = function(e) {
+  cat("nibabel not found. Installing nibabel...\n")
+  py_run_string("
+import subprocess
+import sys
+subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'nibabel'])
+")
+  cat("nibabel installation completed.\n")
+})
+
+# Final validation that nibabel is now available
+tryCatch({
+  py_run_string("import nibabel as nib")
+  cat("nibabel successfully imported and ready for use.\n")
+}, error = function(e) {
+  cat("Warning: nibabel installation may have failed:", e$message, "\n")
+})
+
 # Configure knitr chunks to ensure Python code is executed correctly
 knitr::opts_chunk$set(
   eval = TRUE,    # Execute the code chunks
   echo = TRUE,    # Display the code chunks in the final output
   message = FALSE,  # Suppress messages from being shown
   warning = FALSE,  # Suppress warnings from being shown
-  results = 'markup',  # Ensure output is handled properly
+  results = 'markup',  # Format output with proper styling (creates output boxes)
   engine = "python"  # Use Python engine for relevant chunks
 )
 
