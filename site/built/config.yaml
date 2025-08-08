@@ -70,11 +70,7 @@ episodes:
 
   - 01-data_frames_1.Rmd
   - 02-data_frames_2.Rmd
-<<<<<<< HEAD
   - 03-image_handling.Rmd
-=======
-  # - 03-image_handling.Rmd
->>>>>>> 3c79a3481279197e8eb3434e826f26295974eb9b
   # - 04-time_series.Rmd
 
 # Information for Learners
@@ -88,9 +84,5 @@ profiles:
 releases:
   01-data_frames_1.Rmd
   02-data_frames_2.Rmd
-<<<<<<< HEAD
   03-image_handling.Rmd
-=======
-  # 03-image_handling.Rmd
->>>>>>> 3c79a3481279197e8eb3434e826f26295974eb9b
   # 04-time_series.Rmd
