@@ -12,7 +12,7 @@ home:
 template:
   package: varnish
   params:
-    time: 2025-07-11 14:17:10 +0000
+    time: 2025-08-08 14:27:15 +0000
     source: https://github.com/carpentries/workbench-template-rmd
     branch: main
     contact: team@carpentries.org
@@ -38,9 +38,12 @@ template:
     keywords: software, data, lesson, The Carpentries
     pdf: yes
     ipynb: yes
-    episodes: 01-data_frames_1.Rmd
+    episodes:
+    - 01-data_frames_1.Rmd
+    - 02-data_frames_2.Rmd
+    - 03-image_handling.Rmd
     learners: ~
     instructors: ~
     profiles: ~
-    releases: 01-data_frames_1.Rmd
+    releases: 01-data_frames_1.Rmd 02-data_frames_2.Rmd 03-image_handling.Rmd
 

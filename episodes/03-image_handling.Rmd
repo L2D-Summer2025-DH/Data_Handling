@@ -5,9 +5,9 @@ exercises: 60
 ---
 
 
-[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=1tM6WLCjhUMvn8fcTyms7CCnh5Wvh7__q&export=download)
+[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=1XqQNLGQIcj8VJpMFyub5VrgQXK-8e6pV&export=download)
 
-[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=10XSHRRCH5Sa3JRtVy4utalwucgCAbgm2&export=download)
+[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=1ImgGD-MBD1hnJNlW_QhbetoZWOXfP7tm&export=download)
 
 [<span style="color: rgb(255, 0, 0);">**Mandatory Lesson Feedback Survey**</span>](https://docs.google.com/forms/d/e/1FAIpQLSdr0capF7jloJhPH3Pki1B3LZoKOG16poOpuVJ7SL2LkwLHQA/viewform?pli=1)
 
@@ -47,7 +47,7 @@ knitr::opts_chunk$set(
   echo = TRUE,    # Display the code chunks in the final output
   message = FALSE,  # Suppress messages from being shown
   warning = FALSE,  # Suppress warnings from being shown
-  results = 'asis',  # Ensure output is handled properly
+  results = 'markup',  # Ensure output is handled properly
   engine = "python"  # Use Python engine for relevant chunks
 )
 
@@ -103,8 +103,6 @@ This lesson has no explicit practice exercises. At each step, use images of your
 
 ::::::::::::::::::
 
-## Challenge
-
 ## **Reading and Processing Images**
 <p style='text-align: justify;'>
 In biology, we often deal with images; for example, microscopy and different medical imaging modalities often output images and image data for analysis. In many cases, we wish to extract some quantitative information from these images. The focus of this lesson is to read and process images in Python. This will include:
@@ -120,7 +118,7 @@ In biology, we often deal with images; for example, microscopy and different med
 
 The example in [Figure 1](#ratCerebellum) is an image from the cell [image library](http://cellimagelibrary.org/home) with the following description:
 
->"Midsaggital section of rat cerebellum, captured using confocal imaging. Section shows inositol trisphosphate receptor (IP3R) labelled in green, DNA in blue, and synaptophysin in magenta. Honorable Mention, 2010 Olympus BioScapes Digital Imaging Competition®."
+>"Midsagittal section of rat cerebellum, captured using confocal imaging. Section shows inositol trisphosphate receptor (IP3R) labelled in green, DNA in blue, and synaptophysin in magenta. Honorable Mention, 2010 Olympus BioScapes Digital Imaging Competition®."
 
 <p style='text-align: justify;'>
 Given this information, we might want to determine the relative amounts of IP3R, DNA and synaptophysin in this image. This tutorial will guide you through some of the steps to get you started with processing images of all types, using Python. You can then refer back to this image analysis example, and perform some analyses of your own.
@@ -142,7 +140,7 @@ img = imread('fig/axon_slice.jpg')
 
 ```
 
-We can then check what type of variable is, using the type() function:
+We can then check what type of variable it is, using the type() function:
 
 
 ```{python}
@@ -159,7 +157,7 @@ print(img.shape)
 
 <p style='text-align: justify;'>
 
-This tells us that our image is composed of 2300 by 3040 data units, or _pixels_ as we are dealing with an image. The total number of pixels in the image, is equivalent to its resolution. In digital imaging, a pixel is simply a numerical value that represents either intensity, in a greyscale image; or colour in a colour image. Therefore, as data, a two-dimensional (2-D) greyscale image comprises a 2-D array of these intensity values, or elements; hence the name ‘pixel’ is an amalgamation of ‘picture’ and ‘element’. The array in our example has two dimensions, and so we can expect the image to be 2-D as well. Let us now use matplotlib.pyplot’s `imshow` function to plot the image to see what it looks like. We can set the colour map to `gray` in order to overwrite the default colour map.
+This tells us that our image is composed of 2300 by 3040 data units, or _pixels_ as we are dealing with an image. The total number of pixels in the image, is equivalent to its resolution. In digital imaging, a pixel is simply a numerical value that represents either intensity, in a greyscale image, or colour intensity, in a colour image. Therefore, as data, a two-dimensional (2-D) greyscale image comprises a 2-D array of these intensity values, or elements; hence the name ‘pixel’ is an amalgamation of ‘picture’ and ‘element’. The array in our example has two dimensions, and so we can expect the image to be 2-D as well. Let us now use matplotlib.pyplot’s `imshow` function to plot the image to see what it looks like. We can set the colour map to `gray` in order to overwrite the default colour map.
 </p>
 
 ```{python, results = 'hide'}
@@ -226,7 +224,7 @@ show()
 ```
 
 <p style='text-align: justify;'>
-Note, that even though we can plot our greyscale image with colourful colour schemes, it still does not qualify as a colour image. These are just false-colour, Matplotlib-overlayed interpretations of rudimentary intensity values. The reason for this is that a pixel in a standard colour image actually comprises __three sets__ of intensities per pixel; not just the one, as in this greyscale example. In the case above, the number in the array represented a grey value and the colour was assigned to that grey value by `Matplotlib`. These represent ‘false’ colours.
+Note, that even though we can plot our greyscale image with colourful colour schemes, it still does not qualify as a colour image. These are just false-colour, Matplotlib-applied interpretations of rudimentary intensity values. The reason for this is that a pixel in a standard colour image actually comprises __three sets__ of intensities per pixel; not just the one, as in this greyscale example. In the case above, the number in the array represented a grey value and the colour was assigned to that grey value by `Matplotlib`. These represent ‘false’ colours.
 </p>
 
 ## **Creating an Image Mask**
@@ -254,7 +252,7 @@ The image displays a slice through an axon bundle. For the sake of example, let�
 </p>
 
 <p style='text-align: justify;'>
-Based on the histogram above, we might want to try adjusting that threshold somewhere between 100 and 200. Let's see what we get with a threshold set to 125. Firstly, we must implement a conditional statement in order to create the mask. It is then possible to apply this mask to the image. The result can be that we plot both the mask and the masked image.
+Based on the histogram above, we might want to try adjusting that threshold somewhere between 100 and 200. Let's see what we get with a threshold set to 125. Firstly, we must implement a conditional statement in order to create the mask. It is then possible to apply this mask to the image. We can then plot both the mask and the masked image.
 </p>
 
 ```{python, results='hide', collapse=TRUE}
@@ -275,7 +273,7 @@ show()
 ```
 
 <p style='text-align: justify;'>
-The left subplot shows the binary mask itself. White represents values where our condition is true, and black where our condition is false. The right image shows the original image after we have applied the binary mask, it shows the original pixel intensities in regions where the mask value is true.
+The left subplot shows the binary mask itself. White represents values where our condition is true, and black where our condition is false. The right image shows the original image after we have applied the binary mask, showing the original pixel intensities in regions where the mask value is `True`.
 </p>
 <p style='text-align: justify;'>
 Note that applying the mask means that the intensities where the condition is true are left unchanged. The intensities where the condition is false are multiplied by zero, and therefore set to zero.
@@ -304,7 +302,7 @@ The left subplot displays the values for the masked image. Note that there is a 
 
 ## Colour Images
 <p style='text-align: justify;'>
-So far, our image has had a single intensity value for each pixel. In colour images, we have multiple channels of information per pixel; most commonly, colour images are RGB, comprising three corresponding to intensities of red, green and blue. There are many other formats of colour image, but these will be beyond the scope of this lesson.  In a RGB colour image, any colour will be a composite of the intensity value for each of these colours. Our chosen example for a colour image is one of the rat cerebellar cortex. Let us firstly import it and check its shape.
+So far, our image has had a single intensity value for each pixel. In colour images, we have multiple channels of information per pixel; most commonly, colour images are RGB, comprising three corresponding to intensities of red, green and blue. There are many other formats of colour images, but these are beyond the scope of this lesson.  In a RGB colour image, any colour will be a composite of the intensity value for each of these colours. Our chosen example for a colour image is that of a rat cerebellar cortex. Let us firstly import it and check its shape.
 </p>
 
 ```{python}
@@ -368,13 +366,10 @@ We can plot histograms of each of the colour channels.
 fig, ax = subplots(nrows=1, ncols=3, figsize=(20, 5))
 
 ax[0].hist(red_channel.flatten(), bins=50)
-ax[0].set_xlabel("Pixel intensity", fontsize=16)
 ax[0].set_xlabel("Red channel")
 ax[1].hist(green_channel.flatten(), bins=50)
-ax[1].set_xlabel("Pixel intensity", fontsize=16)
 ax[1].set_xlabel("Green channel")
 ax[2].hist(blue_channel.flatten(), bins=50)
-ax[2].set_xlabel("Pixel intensity", fontsize=16)
 ax[2].set_xlabel("Blue channel")
 
 show()
@@ -385,7 +380,7 @@ show()
 Often, we encounter situations where we have to deal with very large images that are composed of many pixels. Images such as these are often difficult to process, as they can require a lot of computer memory to do so. We will explore two different strategies for dealing with this problem - decreasing resolution, and using patches from the original image. To demonstrate this, we can make use of the full-resolution version of the rat brain image in the previous example.
 </p>
 <p style='text-align: justify;'>
-Since the file is quite large, and this is an instructional course where you may wish to use one of our provided GitHub Codespaces to practise these examples, we will use an online, remotely-hosted copy of the image. 
+Since the file is quite large, and this is an instructional course where you may wish to use a GitHub Codespace to practise these examples, we will use an online, remotely-hosted copy of the image. 
 </p>
 <p style='text-align: justify;'>
 In order to do this, we will firstly store our image URL in a variable for ease of handling:
@@ -398,7 +393,7 @@ url = "https://media.githubusercontent.com/media/L2D-Assets/Assets/refs/heads/ma
 ```
 
 <p style='text-align: justify;'>
-Next, we  must bypass the validation of the server's certificate, for ease. SSL stands for Secure Sockets Layer, which is a standard way of providing an encrypted connection between a server and a client. As this is an instructional material, we are disabling this, as we trust the issuing author of the source file (ourselves).
+Next, we must bypass the validation of the server's certificate, for ease. SSL stands for Secure Sockets Layer, which is a standard way of providing an encrypted connection between a server and a client. As this is an instructional material, we are disabling this, as we trust the issuing author of the source file (ourselves).
 </p>
 
 ```{python, results = 'hold'}
@@ -424,13 +419,13 @@ remote_image = BytesIO(urlopen(url, context=ssl_context).read())
 
 <p style='text-align: justify;'>
 
-Next, we can read the image into Python, using the imread() function. However, if we do this plainly, we will receive a warning from Python indicating that the “Image size (324649360 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.” This is alludes to a potential malicious file, designed to crash or cause disruption by using consuming large amounts of memory.
+Next, we can read the image into Python, using the imread() function. However, if we do this plainly, we will receive a warning from Python indicating that the “Image size (324649360 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.” This alludes to a potential malicious file, designed to crash or cause disruption by using consuming large amounts of memory.
 </p>
 
 :::::::::::::::::::::::::::::::::::: callout
 ## Note
 
-This demonstrates how to read a remotely-hosted image into memory, and code using this. However, if you wish to try this with a large image stored locally on your computer you can bypass the steps above and use the lines of code that is commented out in the cells below, instead of the line directly above.
+This demonstrates how to read a remotely-hosted image into memory, and code using this. However, if you wish to try this with a large image stored locally on your computer you can bypass the steps above and use the lines of code that is commented out in the cells below, instead of the line immediately above.
 
 ::::::::::::::::::::::::::::::::::::
 
@@ -511,7 +506,7 @@ print(type(img_numpy))
 ```
 
 <p style='text-align: justify;'>
-Despite the above, it is often desired to keep images in their full resolution, as resizing effectively results in a loss of information. An commonly used, alternative approach to such downsampling is to __patch__ the images. Patching an image essentially divides the picture up into smaller chunks that are termed patches.
+Despite the above, it is often desired to keep images in their full resolution, as resizing effectively results in a loss of information. A commonly used, alternative approach to such downsampling is to __patch__ the images. Patching an image essentially divides the picture up into smaller chunks that are termed patches.
 </p>
 
 For this, we can implement functionality from the [Scikit-Learn](https://scikit-learn.org/stable/) machine learning library.
@@ -550,7 +545,7 @@ Working with these smaller, individual patches will be much more manageable and 
 ## **3-D Images**
 
 <p style='text-align: justify;'>
-So far, we have covered how to handle two-dimensional image data in a variety of ways. But scenarios will often arise whereby the analysis of three-dimensional image data is required. A good example of such 3-D images that is commonly encountered, is MRI scans. These don’t natively exist as .csv format, but are often delivered in specialised image formats. One such format is nii: the __Neuroimaging Informatics Technology Initiative (NIfTI)__ open file format. Handling these types of images requires specialised software. In particular, we will be using an open-source library called __nibabel__. Documentation for this package is available at https://nipy.org/nibabel/.
+So far, we have covered how to handle two-dimensional image data in a variety of ways. But scenarios will often arise whereby the analysis of three-dimensional image data is required. A commonly encountered example of a 3-D image is a MRI scan. These don’t natively exist as .csv format, but are often delivered in specialised image formats. One such format is nii: the __Neuroimaging Informatics Technology Initiative (NIfTI)__ open file format. Handling these types of images requires specialised software. In particular, we will make use of an open-source library called __nibabel__. Documentation for this package is available at https://nipy.org/nibabel/.
 </p>
 
 As it is not contained in your Python installation by default, it needs to be installed first.
@@ -573,7 +568,7 @@ in your command line or terminal.
 import nibabel as nib
 ```
 
-The package is now available for use. To shorten how we call on the nibabel package in our code, we can use the above import statement, using the alias nib to refer to `nibabel`. Thus we can call on any function in nibabel, by using `nib` is followed by a period and the name of that specific function, as follows:
+The package is now available for use. To shorten how we call on the nibabel package in our code, we can use the above import statement, using the alias nib to refer to `nibabel`. Thus we can call on any function in `nibabel`, by using `nib` followed by a dot and the function name, as follows:
 
 ```{python}
 img_3d = nib.load('fig/brain.nii')
@@ -586,7 +581,7 @@ print(img_data.shape)
 ```
 
 <p style='text-align: justify;'>
-We can see that the .shape attribute revelas that this image has three dimensions, and a total of 256 x 256 x 124 volume pixels (or voxels). To visualise our image, we can plot one slice at a time. The example below shows three different slices, in the transverse direction (from chin to the top of the head). To access an image across the transverse orientation, a single value is selected from the third dimension of the image, as follows. As always, the colons indicate that all data on the remaining two axes is selected and visualised:
+We can see that the .shape attribute reveals that this image has three dimensions, and a total of 256 x 256 x 124 volume pixels (or voxels). To visualise our image, we can plot one slice at a time. The example below shows three different slices, in the transverse direction (from chin to the top of the head). To access an image across the transverse orientation, a single value is selected from the third dimension of the image, as follows. As always, the colons indicate that all data on the remaining two axes is selected and visualised:
 </p>
 
 ```{python, results='hide', collapse=TRUE}
@@ -625,7 +620,7 @@ fig.colorbar(p3, ax=ax[2], shrink=0.4);
 show()
 ```
 
-What about the other dimensions? We can also plot coronal and sagittal slices, for example.  But take note that, in this case, the respective slices have different pixel resolutions. Let us expand our code even further, to display all three desired viewing planes in our MRI scan, as follows:
+What about the other dimensions? We can also plot coronal and sagittal slices.  However take note that, in this case, the respective slices have different pixel resolutions. Let us expand our code even further, to display all three desired viewing planes in our MRI scan, as follows:
 
 ```{python, results='hide', collapse=TRUE}
 fig, ax = subplots(nrows=3, ncols=5, figsize=(26, 18))
@@ -665,15 +660,15 @@ The result is that we have clearly visualised slices of our 3-D image, represent
 
 Using the image from the beginning of this lesson (rat_cerebellum.jpg) to perform the following tasks:
 
-1. Import the image and display it.
+1. Read the image into your workspace and display it.
 
-2. Show histograms for each of the colour channels and plot the contributions of each of the RGB colours to the final image, separately.
+2. Extract and isolate each of the colour channels (RGB): Save each colour channel as its own variable, plot the image with only a single colour per subplot, and separately plot the respective histograms of each colour.
 
-3. Create three different binary masks using manually determined thresholds: one for mostly red pixels, one for mostly green pixels, and one for mostly blue pixels. Note that you can apply conditions that are either greater or smaller than a threshold of your choice.
+3. Create three different binary masks using manually determined thresholds, one for each colour channel. Pick an appropriate threshold based on the figures above and create a masked image by setting the values that correspond to False to zero. Note that you can apply conditions that are either greater than or smaller than a threshold of your choice.
 
-4. Plot the three masks and the corresponding masked images.
+4. Plot the three masks and their corresponding masked images.
 
-5. Using your masks, approximate the relative amounts of synaptophysin, IP3R, and DNA in the image. To do this, you can assume that the number of red pixels represents synaptophysin, green pixels represents IP3R and blue pixels represent DNA. The results will vary depending on the setting of the thresholds. How do different threshold values change your results?
+5. Using your masks, approximate the relative amounts of synaptophysin, IP3R, and DNA in the image. You can assume `red pixels = synaptophysin`, `green pixels = IP3R`, and `blue pixels = DNA`. Give your results as a percentage of the total pixels. The results will vary depending on the setting of the thresholds. Have a play around with different threshold values and see how they change your results.
 
 6. Change the resolution of your image to different values. How does the resolution affect your results?
 
@@ -690,7 +685,7 @@ Using the image from the beginning of this lesson (rat_cerebellum.jpg) to perfor
 ::::::::::::::::::::::::::::::::::::: keypoints
 
 - The `imread` function can be used to read in and interpret multiple image formats.
-- Masking isolates pixels whose intensity value is below a certain threshold.
+- Masking isolates pixels whose intensity values are below a certain threshold.
 - Colour images typically comprise three channels (corresponding to red, green and blue intensities).
 - Python Imaging Library (PIL) helps to set and raise default pixel limits for reading in and handling larger images.
 
