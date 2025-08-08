@@ -4,9 +4,15 @@ teaching: 60
 exercises: 60
 ---
 
+<<<<<<< HEAD
 [**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=1So2ZIYXX5KCqbrFu-ivlALXr8hsQb2D9&export=download)
 
 [**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=1-MPTe2DkfzoiOBuFQ8nzVDYvbrQ6vPvJ&export=download)
+=======
+[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=1rs3CrdFd_Ilcb5dmL3KL8N6V3n99fOhZ&export=download)
+
+[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=1vBj8V2sZwU7W3fah8ui6ijyJHwRANBtF&export=download)
+>>>>>>> 3c79a3481279197e8eb3434e826f26295974eb9b
 
 [<span style="color: rgb(255, 0, 0);">**Mandatory Lesson Feedback Survey**</span>](https://docs.google.com/forms/d/e/1FAIpQLSdr0capF7jloJhPH3Pki1B3LZoKOG16poOpuVJ7SL2LkwLHQA/viewform?pli=1)
 

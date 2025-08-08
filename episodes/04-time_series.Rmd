@@ -15,7 +15,7 @@ exercises: 60
 library(reticulate)
 
 # Unset any previously set Python environments to avoid conflicts
-Sys.unsetenv("RETICULATE_PYTHON")
+Sys.setenv(RETICULATE_PYTHON = "/Users/Adam/.virtualenvs/r-reticulate/bin/python3")
 
 # Check if Pandoc is available
 if (!file.exists("/opt/homebrew/bin/pandoc")) {
