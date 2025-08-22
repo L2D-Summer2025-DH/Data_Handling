@@ -1,0 +1,819 @@
+---
+title: "Time Series"
+teaching: 60
+exercises: 60
+---
+
+
+[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=1uGNrYk3BZdz5MTXJ6rk-0lSpheoBMx7B&export=download)
+
+[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=1unEZmPfb0eoluiRN0it4wVDcngFkXmxO&export=download)
+
+[<span style="color: rgb(255, 0, 0);">**Mandatory Lesson Feedback Survey**</span>](https://docs.google.com/forms/d/e/1FAIpQLSdr0capF7jloJhPH3Pki1B3LZoKOG16poOpuVJ7SL2LkwLHQA/viewform?pli=1)
+
+
+
+
+:::::::::::::::::::::::::::::::::::::: questions
+
+- How is time series data visualised?
+- Why is it necessary to filter the data?
+- How do we study correlation among time series data points?
+
+::::::::::::::::::::::::::::::::::::::::::::::::
+
+::::::::::::::::::::::::::::::::::::: objectives
+
+- Learning ways to display multiple time series.
+- Understanding why filtering is required.
+- Explaining the Fourier spectrum of a time series.
+- Acquiring knowledge of correlation matrices of time series data.
+
+::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+<br>
+<p align = "center">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/qWYBBXR8Yrs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</p>
+<br>
+<p align = "center">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/T2Qh7yjHC9M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</p>
+<br>
+
+
+:::::::::::::::::: prereq
+
+## Prerequisites
+
+- [Dataframes 1 and 2](01-data_frames_1.Rmd)
+- [Image Handling](03-image_handling.Rmd)
+- [Basics of Numpy Arrays]()
+
+::::::::::::::::::
+
+
+``` python
+from pandas import read_csv
+
+from numpy import arange, zeros, linspace, sin, pi, c_, mean, var, array
+from numpy import correlate, corrcoef, fill_diagonal, amin, amax, asarray
+from numpy import around
+from numpy.ma import masked_less, masked_greater
+
+from matplotlib.pyplot import subplots, yticks, legend, axis, figure, show
+```
+
+
+## Define Our Own Plotting Function
+
+<p style='text-align: justify;'>
+Please execute code below, which defines a function of our own called `plot_series`, before proceeding any further. This function code takes data and creates a plot of all columns as time series, laid out one above the other. When you execute the function code nothing happens. Similar to an import statement, running the function code will only define it and make it available for use. In order to action the function itself, you must call the function *after* it has been successfully defined.
+</p>
+
+
+``` python
+def plot_series(data, sr):
+    '''
+    Time series plot of multiple time series
+    Data are normalised to mean=0 and var=1
+    
+    Parameters:
+    -----------
+    data : numpy.ndarray
+        nxm numpy array. Rows are time points, columns are channels
+    sr : int
+        Sampling rate, same time units as period
+    
+    Features:
+    ---------
+    - Normalises each channel to mean=0, std=1
+    - Offsets channels vertically for clear separation
+    - Adds reference lines at zero for each channel
+    - Proper time axis scaling
+    - Channel labelling
+    '''
+    
+    samples = data.shape[0]
+    sensors = data.shape[1]
+    
+    period = samples // sr
+    time = linspace(0, period, period*sr)
+    
+    offset = 5  # for mean=0 and var=1 normalised data
+ 
+    # Calculate means and standard deviations of all columns
+    means = data.mean(axis=0)
+    stds = data.std(axis=0)
+ 
+    # Plot each series with an offset of 2 times the standard deviations
+    
+    fig, ax = subplots(figsize=(7, 8))
+ 
+    # Plot normalised data with vertical offsets
+    ax.plot(time, (data - means)/stds + offset*arange(sensors-1, -1, -1))
+ 
+    # Add reference lines at zero for each channel
+    ax.plot(time, zeros((samples, sensors)) + offset*arange(sensors-1, -1, -1),
+            '--', color='gray', alpha=0.5)
+    
+    ax.set(xlabel='Time (seconds)', ylabel='Channel')
+    ax.set_yticks(offset*arange(sensors))
+    ax.set_yticklabels(arange(sensors)[::-1])
+    ax.set_title('Multi-Channel Time Series Plot')
+    
+    return fig, ax
+```
+
+
+
+## Example: Normal and Pathological EEG
+
+<p style='text-align: justify;'>
+As an example, let us import two sets of time series data and convert these into NumPy arrays, that we will call _data_back_ and _data_epil_. They represent a human electroencephalogram (EEG), as recorded during normal _background_ activity and during an epileptic seizure, referred to as an _absence_ seizure.
+</p>
+
+
+``` python
+df_back = read_csv("data/EEG_background.txt", delim_whitespace=True)
+df_epil = read_csv("data/EEG_absence.txt", delim_whitespace=True)
+
+sr = 256     # 1 / seconds
+period = 6   # seconds
+channels = 10
+
+d1 = df_back.to_numpy()
+d2 = df_epil.to_numpy()
+
+data_back = d1[:period*sr:, :channels]
+data_epil = d2[:period*sr:, :channels]
+```
+
+<p style='text-align: justify;'>
+The `read_csv` function is called in combination with the keyword argument `delim_whitespace`. When its value is set to `True`, this allows the user to import data that are space-separated (rather than comma-separated). If you eyeball the contents of the `data .txt` files, you will notice that the numbers (which represent voltages) are indeed separated by spaces, not commas.
+</p>
+
+<p style='text-align: justify;'>
+Next, three constants are assigned: The sampling rate (sr) is given in the number of samples recorded per second; the duration of the recording (period) which is given in seconds; and the number of columns (channels), to be extracted from the recording. Let’s make use of the first 10 columns of data for the remainder of this lesson. 
+</p>
+
+The data are then converted from Pandas DataFrame into a NumPy array.
+
+To see the names of the channels (or recording sensors), we can use the `.head()` method, as follows:
+
+
+``` python
+df_back.head()
+```
+
+``` output
+       FP1      FP2        F3       F4  ...      EO2      EM1      EM2      PHO
+0  -7.4546  22.8428   6.28159  15.6212  ...  13.7021  12.9109  13.7034  9.37573
+1 -11.1060  21.4828   6.89088  15.0562  ...  13.7942  13.0194  13.7628  9.44731
+2 -14.4000  20.0907   7.94856  14.1624  ...  13.8982  13.1116  13.8239  9.51796
+3 -17.2380  18.7206   9.36857  13.0093  ...  14.0155  13.1927  13.8914  9.58770
+4 -19.5540  17.4084  11.06040  11.6674  ...  14.1399  13.2692  13.9652  9.65654
+
+[5 rows x 28 columns]
+```
+
+<p style='text-align: justify;'>
+The row indices and column names for the seizure data look the same. The names of the recording channels are from the commonly used [10-20 system](https://en.wikipedia.org/wiki/10–20_system_(EEG)) used to record voltages of brain activity from the human scalp. As an example, 'F' stands for the frontal lobe.
+</p>
+
+<p style='text-align: justify;'>
+Next, we can call and make use of the plot function that we defined previously, in order to plot the data. If we examine the code in which this function was defined, you can see that we have set it to require the user to specify two input arguments: these correspond to the dataset (`data`) and sampling rate (`sr`).
+</p>
+
+
+``` python
+plot_series(data_back, sr)
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" />
+
+
+``` python
+plot_series(data_epil, sr);
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-6-3.png" width="672" style="display: block; margin: auto;" />
+
+__Observations__
+
+1. Background:
+
+- There are irregular oscillations of all recorded brain potentials.
+
+- Oscillations recorded at different locations above the brain, differ.
+
+- Oscillations are not stable, but are modulated over time.
+
+- There are different frequency components evident in each trace.
+
+2. Epileptic Seizure:
+
+- There are regular oscillations.
+
+- Oscillations recorded at different locations are not identical but similar or at least related in terms of their shape.
+
+- Despite some modulation, the oscillations are fairly stable over time.
+
+- There are repetitive motifs comprising two major components throughout the recording, a sharp _spike_ and a slow _wave_.
+
+__Task__
+
+<p style='text-align: justify;'>
+Quantify features of these time series data to obtain an overview of the data. For a univariate feature we can use the frequency content. This takes into account the fact that the rows (or samples) are not independent of each other but are organised along the time axis. In consequence, there are correlations between data points along the rows of each column and the __Fourier spectrum__ can be used to identify these.
+</p>
+
+<p style='text-align: justify;'>
+The Fourier spectrum assumes that the data are stationary and can be thought of as a superposition of regular sine waves with different frequencies. Its output will show which of the frequencies are present in the data and also their respective amplitudes. The Fourier spectrum is obtained through mathematical processes collectively known as the Fourier Transform, where a signal is decomposed into its constituent frequencies, allowing each individual frequency component to be analysed and inferences to be made regarding its periodic characteristics.
+</p>
+
+For a bivariate feature, we can use the cross-correlation matrix.
+
+## Work-Through Example
+
+Check the NumPy array containing the background and seizure data.
+
+
+``` python
+print(data_back.shape, data_epil.shape)
+```
+
+``` output
+(1536, 10) (1536, 10)
+```
+
+There are 1536 rows and 10 columns.
+
+### **Display data with offset**
+
+<p style='text-align: justify;'>
+Scroll up, and take a look at the code we gave previously, that defines the function `plot_series`. Again, this is the function we are using to create our time series plot. It requires the input of a data file where the row index is interpreted as time. In addition, the sampling rate (sr) is required in order to extract the time scale. The sampling rate specifies the number of samples recorded per unit time.
+</p>
+
+The sensors, or recording channels, are assumed to be in the columns.
+
+The declaration syntax `def` is followed by the function name and, in parentheses, the input arguments. This line ends with a colon, which is required by Python in order to define the start of a block of code.
+
+Following the declaration line, the function’s documentation or docstring is contained within two lines of triple backticks. This explains the function’s operation, arguments and use – and can contain any other useful information pertaining to the operation of the defined function. 
+
+Following the docstring, the main lines of code that operate on the arguments provided by the user, when the function is called.
+
+The function can then be closed using the optional output syntax `return` and any number of returned variables, anything that might be used as a product of running the function.
+
+In our example, the figure environment and the coordinate system are 'returned' and can, in principle, be used to further modify the plot.
+
+The code below illustrates how to call the function and then add a title and the sensor names to the displayed output:
+
+
+
+``` python
+(fig, ax) = plot_series(data_epil, sr)
+
+names = df_back.columns[:channels]
+
+fig.suptitle('Recording of Absence Seizure', fontsize=16);
+
+legend(names);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-8-5.png" width="672" style="display: block; margin: auto;" />
+
+<p style='text-align: justify;'>
+The variables passed into a function are called its *input arguments*; and the values it returns are termed its *outputs*. A function ordinarily accepts data or variables in the form of one or several such input arguments, processes these, and subsequently produces a specific output. 
+</p>
+<p style='text-align: justify;'>
+There are different ways to create functions in Python. In this course, we will be using the keyword `def` to define our own functions. This is the easiest, and by far the most common method for defining functions. The structure of a typical function defined using `def` can be seen in the `plot_series` example:
+</p>
+
+There are several key points about functions that are worth noting:
+
+- The name of a function follows same principles as that of any other variable. It must be in lower-case characters, and it is strongly suggested that its name bears resemblance to the processes it undertakes.
+
+- The input arguments of a function,  e.g. _data_ and _sr_ in our example, are essentially variables whose scope is confined only to the function. That is, they are only accessible within the function itself, and not from outside the function.
+
+- Variables defined inside of a function should not use the same name as variables defined outside. Otherwise they may override each other.
+
+<p style='text-align: justify;'>
+When defining a function, it is important and best practice to write that function to perform only one specific task. As such, it can be used independent of the current context. Try to avoid incorporating separable tasks into a single function.
+</p>
+<p style='text-align: justify;'>
+Once you start creating functions for different purposes you can start to build your own library of ready-to-use functions. This is the primary principle of a popular programming paradigm known as [functional programming](https://en.wikipedia.org/wiki/Functional_programming).
+</p>
+
+### **Filtering**
+
+Datasets with complex waveforms contain many different components which may or may not be relevant to a specific question.
+<p style='text-align: justify;'>
+In such situations it can be useful to filter your data, ensuring that you are removing specific components from the dataset that are not relevant to your analyses or question. In this context, the term component refers to 'frequency', i.e.  the number of cycles the waveform completes per unit of time. A small number refers to low frequencies with long periods (cycles), and a large number refers to high frequencies with short periods.
+</p>
+
+Let’s explore a simple example, demonstrating how both low- and high-frequency components can be filtered (suppressed) in our example time series.
+
+Let’s begin by defining a simple function which takes two additional input arguments: low and high cut-off.
+
+
+
+``` python
+def data_filter(data, sr, low, high):
+    """
+    Filtering of multiple time series.
+
+    data: nxm numpy array. Rows are time points, columns are recordings
+    sr: sampling rate, same time units as period
+
+    low:  Low cut-off frequency (high-pass filter)
+    high: High cut-off frequency (low-pass filter)
+
+    return: filtered data
+    """
+
+    from scipy.signal import butter, sosfilt
+
+    order = 5
+
+    filter_settings = [low, high, order]
+
+    sos = butter(order, (low,high), btype='bandpass', fs=sr, output='sos')
+
+    data_filtered = zeros((data.shape[0], data.shape[1]))
+
+    for index, column in enumerate(data.transpose()):
+        forward = sosfilt(sos, column)
+        backwards = sosfilt(sos, forward[-1::-1])
+        data_filtered[:, index] = backwards[-1::-1]
+
+    return data_filtered
+```
+
+
+
+``` python
+data_back_filt = data_filter(data_back, sr, 8, 13)
+
+(fig, ax) = plot_series(data_back_filt, sr)
+
+fig.suptitle('Filtered Recording of Background EEG', fontsize=16);
+
+legend(names);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-10-7.png" width="672" style="display: block; margin: auto;" />
+
+<p style='text-align: justify;'>
+The frequency range from 8 to 13 Hz is referred to as alpha band in our EEG. It is thought that this represents a type of idling rhythm in the brain where the brain is not actively processing sensory input.
+</p>
+
+:::::::::::::::::::::::::::::: challenge
+
+## Practice Exercise 1 
+
+**Band-pass filtered data**
+
+Create figures of the delta (1-4 Hz) band for both the background and the seizure EEG. Note the differences.
+
+::::::::::::::::: solution
+
+
+
+``` python
+data_back_filt = data_filter(data_back, sr, 1, 4)
+
+(fig, ax) = plot_series(data_back_filt, sr)
+
+fig.suptitle('Delta Band of Background EEG', fontsize=16);
+
+legend(names);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-11-9.png" width="672" style="display: block; margin: auto;" />
+
+
+``` python
+data_epil_filt = data_filter(data_epil, sr, 1, 4)
+
+(fig, ax) = plot_series(data_epil_filt, sr)
+
+fig.suptitle('Delta Band of Seizure EEG', fontsize=16);
+
+legend(names);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-12-11.png" width="672" style="display: block; margin: auto;" />
+
+:::::::::::::::::
+
+:::::::::::::::::::::::::::::::
+
+### **Fourier Spectrum**
+<p style='text-align: justify;'>
+The Fourier spectrum decomposes the time series into a sum of sine waves. The spectrum shows the amplitude of each sine wave component present in the signal. The coefficients are directly related to the amplitudes required to optimally fit the sum of all sine waves, in order to recreate the original data.
+</p>
+
+<p style='text-align: justify;'>
+However, the assumption behind the Fourier Transform, is that the data are provided as an infinitely long, stationary time series. These assumptions are invalid, as the data are finite and stationarity of a biological system is rarely guaranteed. Thus, interpretation needs to be approached cautiously.
+</p>
+
+#### **Fourier Transform of EEG data**
+
+We import the Fourier Transform function `fft` from the library __scipy.fftpack__ where it can be used to transform all columns at the same time.
+
+
+
+``` python
+from scipy.fftpack import fft
+
+data_back_fft = fft(data_back, axis=0)
+```
+
+To plot the results of the Fourier Transform, the following steps must be taken.
+<p style='text-align: justify;'>
+Firstly, we must obtain a Fourier spectrum for every data column. Thus, we need to define how many plots we want to have. If we take only the columns in our data, we should be able to display them all, simultaneously.
+</p>
+<p style='text-align: justify;'>
+Secondly, the Fourier Transform results in twice the number of complex coefficients; it produces both positive and negative frequency components, of which we only need the first (positive) half.
+</p>
+<p style='text-align: justify;'>
+Lastly, the Fourier Transform outputs complex numbers. To display the ‘amplitude’ of each frequency, we take the absolute value of the complex numbers, using the abs() function. 
+</p>
+
+
+``` python
+no_win = 2
+
+rows = data_back.shape[0]
+
+freqs = (sr/2)*linspace(0, 1, int(rows/2))
+
+amplitudes_back = (2.0 / rows) * abs(data_back_fft[:rows//2, :2])
+
+
+fig, axes = subplots(figsize=(6, 5), ncols=1, nrows=no_win, sharex=False)
+
+names = df_back.columns[:2]
+
+for index, ax in enumerate(axes.flat):
+    axes[index].plot(freqs, amplitudes_back[:, index])
+    axes[index].set_xlim(0, 8)
+    axes[index].set(ylabel=f'Amplitude {names[index]}')
+
+axes[index].set(xlabel='Frequency (Hz)');
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-14-13.png" width="576" style="display: block; margin: auto;" />
+
+In these two channels, we can clearly see that the main amplitude contributions lie in the low frequencies, below 2 Hz.
+
+Let us compare the corresponding figure for the case of seizure activity:
+
+
+
+``` python
+data_epil_fft = fft(data_epil, axis=0)
+```
+
+
+``` python
+fig, axes = subplots(figsize=(6, 5), ncols=1, nrows=no_win, sharex=False)
+
+names = df_epil.columns[:2]
+
+amplitudes_epil = (2.0 / rows) * abs(data_epil_fft[:rows//2, :2])
+
+for index, ax in enumerate(axes.flat):
+    axes[index].plot(freqs, amplitudes_epil[:, index])
+    axes[index].set_xlim(0, 12)
+    axes[index].set(ylabel=f'Amplitude {names[index]}')
+
+axes[index].set(xlabel='Frequency (Hz)');
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-16-15.png" width="576" style="display: block; margin: auto;" />
+
+During the seizure, it is clear that the main frequency of the epileptic rhythm is between 2 and 3 Hz. 
+<p style='text-align: justify;'>
+As we can see from the Fourier spectra generated above, the amplitudes are high for low frequencies; and these amplitudes tend to *decrease* as the frequency *increases*. Thus, it can sometimes be useful to see the high frequencies enhanced. This can be achieved with a logarithmic plot of the powers.
+</p>
+
+
+``` python
+fig, axes = subplots(figsize=(6, 6), ncols=1, nrows=no_win, sharex=False)
+
+for index, ax in enumerate(axes.flat):
+
+    axes[index].plot(freqs, amplitudes_back[:, index])
+    axes[index].set_xlim(0, 30)
+    axes[index].set(ylabel=f'Amplitude {names[index]}')
+    axes[index].set_yscale('log')
+
+axes[no_win-1].set(xlabel='Frequency (Hz)');
+fig.suptitle('Logarithmic Fourier Spectra of Background EEG', fontsize=16);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-17-17.png" width="576" style="display: block; margin: auto;" />
+
+And for the seizure data:
+
+
+``` python
+fig, axes = subplots(figsize=(6, 10), ncols=1, nrows=no_win, sharex=False)
+
+for index, ax in enumerate(axes.flat):
+
+    axes[index].plot(freqs, amplitudes_epil[:, index])
+    axes[index].set_xlim(0, 30)
+    axes[index].set(ylabel=f'Power {names[index]}')
+    axes[index].set_yscale('log')
+
+axes[no_win-1].set(xlabel='Frequency (Hz)');
+fig.suptitle('Logarithmic Fourier Spectra of Seizure EEG', fontsize=16);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-18-19.png" width="576" style="display: block; margin: auto;" />
+<p style='text-align: justify;'>
+In the spectrum of the absence data, it is now more obvious that there are further maxima at 6, 9, 12 and perhaps 15Hz. These are integer multiples or 'harmonics' of the basic frequency at around 3Hz, which we term as the fundamental frequency.
+</p>
+<p style='text-align: justify;'>
+A feature that can be used as a summary statistic, is to calculate the __band power__ for each channel. Band power is the total power of a signal within a specific frequency range. The band power can be obtained by calculating the sum of all powers within a specified range of frequencies; this range is also referred to as the ‘band’. The band power, thus, is given as a single number.
+</p>
+
+:::::::::::::::::::::::::::::: challenge
+
+## Practice Exercise 2
+
+**Fourier spectra of filtered data**
+
+Calculate and display the Fourier spectra of the first two channels filtered between 4 and 12 Hz for the absence seizure data. Can you find any harmonics?
+
+::::::::::::::::: solution
+
+``` python
+data_epil_filt = data_filter(data_epil, sr, 4, 12)
+
+data_epil_fft = fft(data_epil_filt, axis=0)
+
+rows = data_epil.shape[0]
+
+freqs = (sr/2)*linspace(0, 1, int(rows/2))
+
+amplitudes_epil = (2.0 / rows) * abs(data_epil_fft[:rows//2, :no_win])
+
+fig, axes = subplots(figsize=(6, 10), ncols=1, nrows=no_win, sharex=False)
+
+for index, ax in enumerate(axes.flat):
+    axes[index].plot(freqs, amplitudes_epil[:, index])
+    axes[index].set_xlim(0, 12)
+    axes[index].set(ylabel=f'Amplitudes {names[index]}')
+axes[no_win-1].set(xlabel='Frequency (Hz)');
+
+fig.suptitle('Fourier Spectra of Seizure EEG', fontsize=16);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-19-21.png" width="576" style="display: block; margin: auto;" />
+
+:::::::::::::::::
+
+:::::::::::::::::::::::::::::::
+
+### **Cross-Correlation Matrix**
+As one example of a multivariate analysis of time series data, we can also calculate the cross-correlation matrix.
+
+Let us calculate it for the background:
+
+
+``` python
+corr_matrix_back = corrcoef(data_back, rowvar=False)
+
+fill_diagonal(corr_matrix_back, 0)
+
+fig, ax = subplots(figsize = (8,8))
+
+im = ax.imshow(corr_matrix_back, cmap='coolwarm');
+
+fig.colorbar(im, orientation='horizontal', shrink=0.68);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-20-23.png" width="768" style="display: block; margin: auto;" />
+
+<p style='text-align: justify;'>
+The diagonal is set to zero. This is done to improve the visual display. If it was left set to one, the diagonal would dominate the visual impression given, even though it is trivial and uninformative.
+</p>
+
+Looking at the non-diagonal elements, we find:
+
+- Two strongly correlated series (indices 5 and 7)
+
+- Two strongly anti-correlated series (indices 3 and 4)
+
+- A block of pronounced correlations (between series with indices 4 through 9)
+
+:::::::::::::::::::::::::::::: challenge
+
+## Practice Exercise 3: 
+
+**Display the correlation matrix for the seizure data**
+
+Calculate the correlation matrix for the seizure data and compare the correlation pattern to the one from the background data.
+
+::::::::::::::::: solution
+
+
+
+``` python
+corr_matrix_epil = corrcoef(data_epil, rowvar=False)
+
+fill_diagonal(corr_matrix_epil, 0)
+
+fig, ax = subplots(figsize = (8,8))
+
+im = ax.imshow(corr_matrix_epil, cmap='coolwarm');
+
+fig.colorbar(im, orientation='horizontal', shrink=0.68);
+
+show()
+```
+
+<img src="fig/04-time_series-rendered-unnamed-chunk-21-25.png" width="768" style="display: block; margin: auto;" />
+
+<p style='text-align: justify;'>
+We find a number of pairs of strongly correlated series, two strongly anti-correlated series (indices 3 and 4) and a block of pronounced correlations between series with indices 4 through 9.
+</p>
+<p style='text-align: justify;'>
+So interestingly, while the time series changes dramatically in shape, the correlation pattern still shows some qualitative resemblance.
+</p>
+
+:::::::::::::::::
+
+:::::::::::::::::::::::::::::::
+
+<p style='text-align: justify;'>
+All results shown so far, represent the recording of the segment of 6 seconds we chose at the beginning of the lesson. The human brain produces time-dependent voltage changes 24 hours a day. Thus seeing only a few seconds provides only a partial view. The next step is therefore to investigate and demonstrate how the features found for one segment may vary over time.
+</p>
+
+## Exercises
+:::::::::::::::::::::::::::::::::::::::: challenge
+
+#### End of chapter Exercises
+
+
+#### Assignment Background:
+
+This assignment will build upon the lesson material by having you explore the brain activity data of a child at the start of an epileptic seizure. The trace shows 4 seconds of evolution of the first 10 channels of a seizure rhythm at a sampling rate of 1024 per second (`sr=1024`).
+
+<i>Note: You are encouraged to copy code blocks / functions from the lesson material in order to help you complete this assignment.</i>
+
+### Assignment Questions:
+
+Using the CSV file, `P1_Seizure1.csv` from the [Data](../Data/) folder, complete the following questions.
+
+<i>To obtain your path in a Codespace or a local IDE such as Microsoft Visual Studio Code, navigate to the data file (in your Explorer pane on the left of the window), right click it, and click 'Copy path'. Paste this between quotes, and assign this to the 'path' variable instead.</i>
+
+
+
+``` python
+# Import statements:
+
+from pandas import read_csv
+from matplotlib.pyplot import subplots, yticks, legend, rcParams, show
+
+from numpy import arange, linspace, zeros, amax, asarray, around, corrcoef, fill_diagonal, triu_indices, mean
+
+from scipy.signal import butter, sosfilt
+
+from scipy.fftpack import fft
+```
+
+1. Read the CSV file into the notebook, and convert it into a NumPy array.
+
+2. Create a user-defined plotting function that satisfies the following:
+
+   - Properly formats the time series so that they don't overlap
+   - Generates appropriates axes and labels
+   - <i>HINT: See the lesson materials for the function code</i>
+
+3. Use your newly-defined function to plot the initial data. Make sure to:
+
+   - Only plot the first 4 seconds of data
+   - Only plot the first 10 channels
+   
+### Data Exploration
+
+For these questions, we will generate an overview of uni- and multivariate features in the data, using the following approach.
+
+1. **Data segmentation:**
+
+- From the main dataset, extract two further, separate datasets:
+    
+    - The first 2 seconds as background activity
+    - The last 2 seconds as epileptic seizure activity
+
+- Extract only the first 10 channels for both datasets
+
+- Print the `shape` of both datasets to verify they are correct: **(2028, 10)**
+
+2. **Apply frequency filtering:**
+
+- Create or use a function that contains the `scipy.signal.butter` function which utilises a `bandpass` filter with appropriate settings.
+
+   - <i>HINT: See the lesson material for the code.</i>
+
+- Apply the filter to both datasets in order to remove frequencies *below 1 Hz* and *above 20 Hz*
+
+3. **Plot the filtered data:**
+
+- Use your plotting function to create separate plots for the filtered background and seizure datasets
+
+- Use the `.suptitle` method on fig to appropriately title the plot
+
+4. **Apply Fourier Transform analysis:**
+
+- Apply a Fourier Transform to both filtered datasets:
+
+    - Calculate the power/amplitude spectrum of the frequenices from the fourier transform
+
+- Create a NumPy array containing the possible frequencies using `numpy.linspace`
+
+- Create line plots displaying the Fourier spectra of the first 4 channels for each dataset:
+
+    - Give each plot an appropriate title
+    
+5. **Find peak frequencies:**
+
+- Use NumPy's [`argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html) to get the indices of the maximum values in each column of your Fourier transform results.
+
+   - Use these indices to **extract the corresponding frequencies** from your frequency array *via* slicing
+   
+- Display a list of the maximum frequency per channel for each dataset (rounded to 1 decimal place)
+
+   - Round the items in the array to 1 decimal place. You can use NumPy's [`around`](https://numpy.org/doc/2.0/reference/generated/numpy.around.html) function to do this, as `round` will not work on an array.
+
+- Calculate and display the median max frequency per dataset:
+
+   - Use NumPy's `median` function
+   - Use the rounded data
+   - Do you observe a difference between the background and seizure datasets?
+   
+6. **Generate correlation matrices:**
+
+- Calculate the correlation matrix for *both* datasets
+
+- Set the diagonal values to 0 (since self-correlation is always 1)
+
+- Create side-by-side subplots showing both correlation matrices with appropriate titles and colour bars
+
+    - Ensure the colour scale is the set between -1 and 1 to allow for comparison
+    
+7. **Calculate mean correlations:**
+
+- Calculate the **mean correlation** (using absolute values) of each channel, per dataset
+
+- Find the overall mean correlation values for each dataset:
+
+   - Print your findings
+   - How does the correlation differ between background and seizure activity?
+
+<i>HINT: Look back at the Data Handling 2 lesson if you need a reminder on correlation analysis.</i>
+
+::::::::::::::::::::: solution
+
+## Solutions are provided after assignments are marked.
+
+:::::::::::::::::::::
+
+::::::::::::::::::::::::::::::::::::::::
+
+
+::::::::::::::::::::::::::::::::::::: keypoints
+
+- `plot_series` is a Python function we defined to display multiple time series plots
+- Data filtering is applied to remove specific and irrelevant components
+- The Fourier spectrum decomposes the time series into a sum of sine waves
+- Cross-correlation matrices are used for multivariate analysis
+
+::::::::::::::::::::::::::::::::::::::::::::::::

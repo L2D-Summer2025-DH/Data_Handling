@@ -71,7 +71,7 @@ episodes:
   - 01-data_frames_1.Rmd
   - 02-data_frames_2.Rmd
   - 03-image_handling.Rmd
-  # - 04-time_series.Rmd
+  - 04-time_series.Rmd
 
 # Information for Learners
 learners:
@@ -85,4 +85,4 @@ releases:
   01-data_frames_1.Rmd
   02-data_frames_2.Rmd
   03-image_handling.Rmd
-  # 04-time_series.Rmd
+  04-time_series.Rmd

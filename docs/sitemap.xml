@@ -19,6 +19,9 @@
     <loc>https://carpentries.github.io/workbench-template-rmd/03-image_handling.nb.html</loc>
   </url>
   <url>
+    <loc>https://carpentries.github.io/workbench-template-rmd/04-time_series.html</loc>
+  </url>
+  <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/04-time_series.nb.html</loc>
   </url>
   <url>
@@ -41,6 +44,9 @@
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/instructor/03-image_handling.html</loc>
+  </url>
+  <url>
+    <loc>https://carpentries.github.io/workbench-template-rmd/instructor/04-time_series.html</loc>
   </url>
   <url>
     <loc>https://carpentries.github.io/workbench-template-rmd/instructor/404.html</loc>

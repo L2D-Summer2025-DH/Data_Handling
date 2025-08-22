@@ -41,13 +41,35 @@ tryCatch({
   stop("Failed to validate Python environment.")
 })
 
+# Check and install nibabel if needed
+tryCatch({
+  py_run_string("import nibabel")
+  cat("nibabel is already available.\n")
+}, error = function(e) {
+  cat("nibabel not found. Installing nibabel...\n")
+  py_run_string("
+import subprocess
+import sys
+subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'nibabel'])
+")
+  cat("nibabel installation completed.\n")
+})
+
+# Final validation that nibabel is now available
+tryCatch({
+  py_run_string("import nibabel as nib")
+  cat("nibabel successfully imported and ready for use.\n")
+}, error = function(e) {
+  cat("Warning: nibabel installation may have failed:", e$message, "\n")
+})
+
 # Configure knitr chunks to ensure Python code is executed correctly
 knitr::opts_chunk$set(
   eval = TRUE,    # Execute the code chunks
   echo = TRUE,    # Display the code chunks in the final output
   message = FALSE,  # Suppress messages from being shown
   warning = FALSE,  # Suppress warnings from being shown
-  results = 'asis',  # Ensure output is handled properly
+  results = 'markup',  # Format output with proper styling (creates output boxes)
   engine = "python"  # Use Python engine for relevant chunks
 )
 
@@ -106,12 +128,11 @@ from matplotlib.pyplot import subplots, yticks, legend, axis, figure, show
 
 ```
 
-::::::::::::::::::::::::::::::::::: discussion
 
-## Python Function
+## Define Our Own Plotting Function
 
 <p style='text-align: justify;'>
-Please execute code below, which defines a function of our own called `plot_series`, before proceeding any further. This function code takes data and creates a plot of all columns as time series, laid out one above the other. When you execute the function code nothing happens. Similar to an import statement, running a function code will only activate it, making it available subsequent use. To action the function itself, you must call this after it has been successfully defined
+Please execute code below, which defines a function of our own called `plot_series`, before proceeding any further. This function code takes data and creates a plot of all columns as time series, laid out one above the other. When you execute the function code nothing happens. Similar to an import statement, running the function code will only define it and make it available for use. In order to action the function itself, you must call the function *after* it has been successfully defined.
 </p>
 
 ```{python}
@@ -119,44 +140,55 @@ def plot_series(data, sr):
     '''
     Time series plot of multiple time series
     Data are normalised to mean=0 and var=1
-
-    data: nxm numpy array. Rows are time points, columns are recordings
-    sr: sampling rate, same time units as period
+    
+    Parameters:
+    -----------
+    data : numpy.ndarray
+        nxm numpy array. Rows are time points, columns are channels
+    sr : int
+        Sampling rate, same time units as period
+    
+    Features:
+    ---------
+    - Normalises each channel to mean=0, std=1
+    - Offsets channels vertically for clear separation
+    - Adds reference lines at zero for each channel
+    - Proper time axis scaling
+    - Channel labelling
     '''
-
+    
     samples = data.shape[0]
     sensors = data.shape[1]
-
+    
     period = samples // sr
-
     time = linspace(0, period, period*sr)
-
-    offset = 5 # for mean=0 and var=1 normalised data
-
+    
+    offset = 5  # for mean=0 and var=1 normalised data
+ 
     # Calculate means and standard deviations of all columns
     means = data.mean(axis=0)
     stds = data.std(axis=0)
-
-    # Plot each series with an offset
+ 
+    # Plot each series with an offset of 2 times the standard deviations
+    
     fig, ax = subplots(figsize=(7, 8))
-
-    ax.plot(time, (data - means)/stds + offset*arange(sensors-1,-1,-1));
-
-    ax.plot(time, zeros((samples, sensors)) + offset*arange(sensors-1,-1,-1),'--',color='gray');
-
-    yticks([]);
-
-    names = [str(x) for x in range(sensors)]
-    legend(names)
-
-    ax.set(xlabel='Time')
-
-    axis('tight');
-
+ 
+    # Plot normalised data with vertical offsets
+    ax.plot(time, (data - means)/stds + offset*arange(sensors-1, -1, -1))
+ 
+    # Add reference lines at zero for each channel
+    ax.plot(time, zeros((samples, sensors)) + offset*arange(sensors-1, -1, -1),
+            '--', color='gray', alpha=0.5)
+    
+    ax.set(xlabel='Time (seconds)', ylabel='Channel')
+    ax.set_yticks(offset*arange(sensors))
+    ax.set_yticklabels(arange(sensors)[::-1])
+    ax.set_title('Multi-Channel Time Series Plot')
+    
     return fig, ax
 ```
 
-:::::::::::::::::::::::::::::::::::
+
 
 ## Example: Normal and Pathological EEG
 
@@ -190,7 +222,7 @@ Next, three constants are assigned: The sampling rate (sr) is given in the numbe
 
 The data are then converted from Pandas DataFrame into a NumPy array.
 
-To see the names of the channels (or recording sensors) we can use the `head` method as follows:.
+To see the names of the channels (or recording sensors), we can use the `.head()` method, as follows:
 
 ```{python}
 df_back.head()
@@ -201,7 +233,7 @@ The row indices and column names for the seizure data look the same. The names o
 </p>
 
 <p style='text-align: justify;'>
-Next, we can call and make use of the plot function that we defined in the first block of code, above, in order to plot the data. If we examine the  code in which we defined this function, you can see that we have set it to require the specification of two input arguments: these correspond to the dataset and sampling rate.
+Next, we can call and make use of the plot function that we defined previously, in order to plot the data. If we examine the code in which this function was defined, you can see that we have set it to require the user to specify two input arguments: these correspond to the dataset (`data`) and sampling rate (`sr`).
 </p>
 
 ```{python, results='hide', collapse=TRUE}
@@ -262,58 +294,16 @@ There are 1536 rows and 10 columns.
 ### **Display data with offset**
 
 <p style='text-align: justify;'>
-Take a look at the code used to define the function `plot_series`. Again, this is the function we are using to create the time series plot. It requires the input of a data file where the row index is interpreted as time. In addition, the sampling rate (sr) is required in order to extract the time scale. The sampling rate specifies the number of samples recorded per unit time.
+Scroll up, and take a look at the code we gave previously, that defines the function `plot_series`. Again, this is the function we are using to create our time series plot. It requires the input of a data file where the row index is interpreted as time. In addition, the sampling rate (sr) is required in order to extract the time scale. The sampling rate specifies the number of samples recorded per unit time.
 </p>
 
 The sensors, or recording channels, are assumed to be in the columns.
 
-```{python}
-def plot_series(data, sr):
-    '''
-    Time series plot of multiple time series
-    Data are normalised to mean=0 and var=1
-
-    data: nxm numpy array. Rows are time points, columns are channels
-    sr: sampling rate, same time units as period
-    '''
-
-    samples = data.shape[0]
-    sensors = data.shape[1]
-
-    period = samples // sr
-
-    time = linspace(0, period, period*sr)
-
-    offset = 5 # for mean=0 and var=1 normalised data
-
-    # Calculate means and standard deviations of all columns
-    means = data.mean(axis=0)
-    stds = data.std(axis=0)
-
-    # Plot each series with an offset
-    fig, ax = subplots(figsize=(7, 8))
-
-    ax.plot(time, (data - means)/stds + offset*arange(sensors-1,-1,-1));
-
-    ax.plot(time, zeros((samples, sensors)) + offset*arange(sensors-1,-1,-1),'--',color='gray');
-
-    yticks([]);
-
-    names = [str(x) for x in range(sensors)]
-    legend(names)
-
-    ax.set(xlabel='Time')
-
-    axis('tight');
-
-    return fig, ax
-```
-
-The declaration syntax `def` is followed by the function name and, in parentheses, the input arguments. This is completed with a colon.
+The declaration syntax `def` is followed by the function name and, in parentheses, the input arguments. This line ends with a colon, which is required by Python in order to define the start of a block of code.
 
 Following the declaration line, the function’s documentation or docstring is contained within two lines of triple backticks. This explains the function’s operation, arguments and use – and can contain any other useful information pertaining to the operation of the defined function. 
 
-Followin the docstring, the main lines of code that operate on the arguments provided by the user, when the function is called.
+Following the docstring, the main lines of code that operate on the arguments provided by the user, when the function is called.
 
 The function can then be closed using the optional output syntax `return` and any number of returned variables, anything that might be used as a product of running the function.
 
@@ -335,10 +325,10 @@ show()
 ```
 
 <p style='text-align: justify;'>
-The variable(s) given to a function, and those produced by it, are referred to as input arguments, and outputs respectively. A function ordinarily accepts data or variables in the form of one or several such input arguments, processes these, and subsequently produces a specific output. 
+The variables passed into a function are called its *input arguments*; and the values it returns are termed its *outputs*. A function ordinarily accepts data or variables in the form of one or several such input arguments, processes these, and subsequently produces a specific output. 
 </p>
 <p style='text-align: justify;'>
-There are different ways to create functions in Python. In this course, we will be using the keyword `def` to define our own functions. This is the easiest, and by far the most common method for defining functions. The structure of a typical function defined using `def` can be see in the `plot_series` example:
+There are different ways to create functions in Python. In this course, we will be using the keyword `def` to define our own functions. This is the easiest, and by far the most common method for defining functions. The structure of a typical function defined using `def` can be seen in the `plot_series` example:
 </p>
 
 There are several key points about functions that are worth noting:
@@ -347,7 +337,7 @@ There are several key points about functions that are worth noting:
 
 - The input arguments of a function,  e.g. _data_ and _sr_ in our example, are essentially variables whose scope is confined only to the function. That is, they are only accessible within the function itself, and not from outside the function.
 
-- Variables defined inside of a function, should not use the same name as variables defined outside. Otherwise they may override each other.
+- Variables defined inside of a function should not use the same name as variables defined outside. Otherwise they may override each other.
 
 <p style='text-align: justify;'>
 When defining a function, it is important and best practice to write that function to perform only one specific task. As such, it can be used independent of the current context. Try to avoid incorporating separable tasks into a single function.
@@ -461,7 +451,7 @@ show()
 
 ### **Fourier Spectrum**
 <p style='text-align: justify;'>
-The Fourier spectrum decomposes the time series into a sum of sine waves. The spectrum gives the coefficients of each of the sine wave components. The coefficients are directly related to the amplitudes required to optimally fit the sum of all sine waves, in order to recreate the original data.
+The Fourier spectrum decomposes the time series into a sum of sine waves. The spectrum shows the amplitude of each sine wave component present in the signal. The coefficients are directly related to the amplitudes required to optimally fit the sum of all sine waves, in order to recreate the original data.
 </p>
 
 <p style='text-align: justify;'>
@@ -545,7 +535,7 @@ show()
 
 During the seizure, it is clear that the main frequency of the epileptic rhythm is between 2 and 3 Hz. 
 <p style='text-align: justify;'>
-As we can see from the Fourier spectra generated above, the amplitudes are high for low frequencies, and tend to decrease as the frequency increases. Thus, it can sometimes be useful to see the high frequencies enhanced. This can be achieved with a logarithmic plot of the powers.
+As we can see from the Fourier spectra generated above, the amplitudes are high for low frequencies; and these amplitudes tend to *decrease* as the frequency *increases*. Thus, it can sometimes be useful to see the high frequencies enhanced. This can be achieved with a logarithmic plot of the powers.
 </p>
 
 ```{python}
@@ -586,7 +576,7 @@ show()
 In the spectrum of the absence data, it is now more obvious that there are further maxima at 6, 9, 12 and perhaps 15Hz. These are integer multiples or 'harmonics' of the basic frequency at around 3Hz, which we term as the fundamental frequency.
 </p>
 <p style='text-align: justify;'>
-A feature that can be used as a summary statistic, is to caclulate the __band power__ for each channel. Band power is the total power of a signal within a specific frequency range. The band power can be obtained by calculating the sum of all powers within a specified range of frequencies; this range is also referred to as the ‘band’. The band power, thus, is given as a single number.
+A feature that can be used as a summary statistic, is to calculate the __band power__ for each channel. Band power is the total power of a signal within a specific frequency range. The band power can be obtained by calculating the sum of all powers within a specified range of frequencies; this range is also referred to as the ‘band’. The band power, thus, is given as a single number.
 </p>
 
 :::::::::::::::::::::::::::::: challenge
@@ -684,7 +674,7 @@ show()
 ```
 
 <p style='text-align: justify;'>
-We find - a number of pairs of strongly correlated series - two strongly anti-correlated series (in- dices 3 and 4) - a block of pronounced correlations between series with indices 4 through 9).
+We find a number of pairs of strongly correlated series, two strongly anti-correlated series (indices 3 and 4) and a block of pronounced correlations between series with indices 4 through 9.
 </p>
 <p style='text-align: justify;'>
 So interestingly, while the time series changes dramatically in shape, the correlation pattern still shows some qualitative resemblance.
@@ -704,48 +694,127 @@ All results shown so far, represent the recording of the segment of 6 seconds we
 #### End of chapter Exercises
 
 
-**Pathological Human Brain Rhythms**
-<p style='text-align: justify;'>
-Look at the image of brain activity from a child at the start of an epileptic seizure. It shows 4 seconds of evolution of the first 10 channels of a seizure rhythm at sampling rate sr=1024.
-</p>
+#### Assignment Background:
+
+This assignment will build upon the lesson material by having you explore the brain activity data of a child at the start of an epileptic seizure. The trace shows 4 seconds of evolution of the first 10 channels of a seizure rhythm at a sampling rate of 1024 per second (`sr=1024`).
+
+<i>Note: You are encouraged to copy code blocks / functions from the lesson material in order to help you complete this assignment.</i>
+
+### Assignment Questions:
+
+Using the CSV file, `P1_Seizure1.csv` from the [Data](../Data/) folder, complete the following questions.
+
+<i>To obtain your path in a Codespace or a local IDE such as Microsoft Visual Studio Code, navigate to the data file (in your Explorer pane on the left of the window), right click it, and click 'Copy path'. Paste this between quotes, and assign this to the 'path' variable instead.</i>
 
 
 ```{python}
-path = 'data/P1_Seizure1.csv'
+# Import statements:
 
-data = read_csv(path, delimiter=r"\s+")
+from pandas import read_csv
+from matplotlib.pyplot import subplots, yticks, legend, rcParams, show
 
-data_P1 = data.to_numpy()
+from numpy import arange, linspace, zeros, amax, asarray, around, corrcoef, fill_diagonal, triu_indices, mean
 
-sr = 1024
+from scipy.signal import butter, sosfilt
 
-period = 4
-
-channels = 10
-
-plot_series(data_P1[:sr*period, :channels], sr);
-
-show()
+from scipy.fftpack import fft
 
 ```
 
-Using the code utilised in this lesson, import the data from the file `P1_Seizure1.csv` and generate an overview of uni- and multivariate features in the following form:
+1. Read the CSV file into the notebook, and convert it into a NumPy array.
 
+2. Create a user-defined plotting function that satisfies the following:
 
-1. Pick the first two seconds of the recording as background, and the last two seconds as epileptic seizure rhythm. Use the first ten channels of data, in both cases. Using the shape attribute, the data should give a tuple of (2048, 10).
+   - Properly formats the time series so that they don't overlap
+   - Generates appropriates axes and labels
+   - <i>HINT: See the lesson materials for the function code</i>
 
-2. Filter the data to get rid of frequencies below 1 Hz and frequencies faster than 20 Hz.
+3. Use your newly-defined function to plot the initial data. Make sure to:
 
-3. Plot time series for both.
+   - Only plot the first 4 seconds of data
+   - Only plot the first 10 channels
+   
+### Data Exploration
 
-4. Fourier Transform both filtered datasets and display the Fourier spectra of the first 4 channels. What are the strongest frequencies in each of the two datasets?
+For these questions, we will generate an overview of uni- and multivariate features in the data, using the following approach.
 
-5. Plot the correlation matrices of both datasets. Which channels show the strongest change in correlations?
+1. **Data segmentation:**
+
+- From the main dataset, extract two further, separate datasets:
+    
+    - The first 2 seconds as background activity
+    - The last 2 seconds as epileptic seizure activity
+
+- Extract only the first 10 channels for both datasets
+
+- Print the `shape` of both datasets to verify they are correct: **(2028, 10)**
+
+2. **Apply frequency filtering:**
+
+- Create or use a function that contains the `scipy.signal.butter` function which utilises a `bandpass` filter with appropriate settings.
+
+   - <i>HINT: See the lesson material for the code.</i>
+
+- Apply the filter to both datasets in order to remove frequencies *below 1 Hz* and *above 20 Hz*
+
+3. **Plot the filtered data:**
+
+- Use your plotting function to create separate plots for the filtered background and seizure datasets
+
+- Use the `.suptitle` method on fig to appropriately title the plot
+
+4. **Apply Fourier Transform analysis:**
+
+- Apply a Fourier Transform to both filtered datasets:
+
+    - Calculate the power/amplitude spectrum of the frequenices from the fourier transform
+
+- Create a NumPy array containing the possible frequencies using `numpy.linspace`
+
+- Create line plots displaying the Fourier spectra of the first 4 channels for each dataset:
+
+    - Give each plot an appropriate title
+    
+5. **Find peak frequencies:**
+
+- Use NumPy's [`argmax`](https://numpy.org/doc/stable/reference/generated/numpy.argmax.html) to get the indices of the maximum values in each column of your Fourier transform results.
+
+   - Use these indices to **extract the corresponding frequencies** from your frequency array *via* slicing
+   
+- Display a list of the maximum frequency per channel for each dataset (rounded to 1 decimal place)
+
+   - Round the items in the array to 1 decimal place. You can use NumPy's [`around`](https://numpy.org/doc/2.0/reference/generated/numpy.around.html) function to do this, as `round` will not work on an array.
+
+- Calculate and display the median max frequency per dataset:
+
+   - Use NumPy's `median` function
+   - Use the rounded data
+   - Do you observe a difference between the background and seizure datasets?
+   
+6. **Generate correlation matrices:**
+
+- Calculate the correlation matrix for *both* datasets
+
+- Set the diagonal values to 0 (since self-correlation is always 1)
+
+- Create side-by-side subplots showing both correlation matrices with appropriate titles and colour bars
+
+    - Ensure the colour scale is the set between -1 and 1 to allow for comparison
+    
+7. **Calculate mean correlations:**
+
+- Calculate the **mean correlation** (using absolute values) of each channel, per dataset
+
+- Find the overall mean correlation values for each dataset:
+
+   - Print your findings
+   - How does the correlation differ between background and seizure activity?
+
+<i>HINT: Look back at the Data Handling 2 lesson if you need a reminder on correlation analysis.</i>
 
 ::::::::::::::::::::: solution
 
 ## Solutions are provided after assignments are marked.
-
 
 :::::::::::::::::::::
 
@@ -754,9 +823,9 @@ Using the code utilised in this lesson, import the data from the file `P1_Seizur
 
 ::::::::::::::::::::::::::::::::::::: keypoints
 
-- `plot_series` is a Python function we defined to display multiple time series plots.
-- Data filtering is applied to remove specific and irrelevant components.
-- The Fourier spectrum decomposes the time series into a sum of sine waves.
-- Cross-correlation matrices are used for multivariate analysis.
+- `plot_series` is a Python function we defined to display multiple time series plots
+- Data filtering is applied to remove specific and irrelevant components
+- The Fourier spectrum decomposes the time series into a sum of sine waves
+- Cross-correlation matrices are used for multivariate analysis
 
 ::::::::::::::::::::::::::::::::::::::::::::::::
