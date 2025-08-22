@@ -5,9 +5,9 @@ exercises: 60
 ---
 
 
-[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=1uGNrYk3BZdz5MTXJ6rk-0lSpheoBMx7B&export=download)
+[**Download chapter PDF (.pdf).**](https://drive.usercontent.google.com/u/1/uc?id=11dkdlhoSUAfnyhR6TKplgYnAbGJs-b9H&export=download)
 
-[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=1unEZmPfb0eoluiRN0it4wVDcngFkXmxO&export=download)
+[**Download chapter notebook (.ipynb).**](https://drive.usercontent.google.com/u/1/uc?id=1i1eetLFFPZ0NLwUksHNzDx9umUhhoAa0&export=download)
 
 [<span style="color: rgb(255, 0, 0);">**Mandatory Lesson Feedback Survey**</span>](https://docs.google.com/forms/d/e/1FAIpQLSdr0capF7jloJhPH3Pki1B3LZoKOG16poOpuVJ7SL2LkwLHQA/viewform?pli=1)
 
